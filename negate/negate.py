@@ -72,6 +72,8 @@ class Negator:
         if not (root or self._is_sentence_supported(doc)):
             self.logger.warning("Sentence not supported. Output might be "
                                 "arbitrary.")
+            if not root:  # Don't even bother trying :)
+                return sentence
 
         # Any negations we can remove? (e.g.: "I don't know.", "They won't
         # complain.", "He has not done it.", etc.).
@@ -299,10 +301,14 @@ class Negator:
         return root[0] if root else None
 
     def _get_negated_child(self, token: SpacyToken) -> Optional[SpacyToken]:
+        if not token:
+            return None
         child = [child for child in token.children if child.dep == neg]
         return child[0] if child else None
 
     def _get_aux_child(self, token: SpacyToken) -> Optional[SpacyToken]:
+        if not token:
+            return None
         child = [child for child in token.children if self._is_aux(child)]
         return child[0] if child else None
 
@@ -311,6 +317,8 @@ class Negator:
         token: SpacyToken,
         doc: SpacyDoc
     ) -> Optional[SpacyToken]:
+        if not token:
+            return None
         parent = [
             potential_parent
             for potential_parent in doc
@@ -319,15 +327,23 @@ class Negator:
         return parent[0] if parent else None
 
     def _is_aux(self, token: SpacyToken) -> bool:
+        if not token:
+            return False
         return token.pos == AUX
 
     def _is_verb(self, token: SpacyToken) -> bool:
+        if not token:
+            return False
         return token.pos == VERB
 
     def _is_verb_to_do(self, verb: SpacyToken) -> bool:
+        if not verb:
+            return False
         return getLemma(verb.text.lower(), "VERB")[0] == "do"
 
     def _is_verb_to_be(self, verb: SpacyToken) -> bool:
+        if not verb:
+            return False
         return getLemma(verb.text.lower(), "VERB")[0] == "be"
 
     def _is_sentence_supported(self, doc: SpacyDoc) -> bool:
