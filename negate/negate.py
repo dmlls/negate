@@ -363,8 +363,6 @@ class Negator:
             add_tokens = dict(sorted(add_tokens.items()))  # sort by index
         tokens = [Token(tk.text, tk._.has_space_after) for tk in doc]
         for i in remove_tokens:
-            # if i > 0 and tokens[i-1] is not None:
-            #     tokens[i-1].has_space_after = tokens[i].has_space_after
             tokens[i] = Token(text="", has_space_after=False)
         for count, item in enumerate(add_tokens.items()):
             i, tk = item

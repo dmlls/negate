@@ -68,3 +68,13 @@ path = "negate/__init__.py"
 packages = [
     "negate",
 ]
+
+[tool.pytest.ini_options]
+minversion = "7.2.0"
+addopts = "-ra"
+testpaths = [
+    "tests",
+]
+python_functions = [
+    "test_*",
+]
