@@ -62,7 +62,7 @@ class Negator:
     def negate_sentence(
         self,
         sentence: str,
-        use_contractions: bool = True
+        prefer_contractions: bool = True
     ) -> str:
         if not sentence:
             return ""
@@ -157,7 +157,7 @@ class Negator:
             return self._negate_aux_in_doc(
                 aux=root if not aux_child else aux_child,
                 doc=doc,
-                use_contractions=use_contractions
+                prefer_contractions=prefer_contractions
             )
 
         # General verb non-negated.
@@ -165,7 +165,7 @@ class Negator:
             doc,
             remove_tokens=[root.i],
             add_tokens={root.i: Token(
-                text=f"{self.negate_aux(self.conjugate_verb('do', root.tag_), use_contractions)} "
+                text=f"{self.negate_aux(self.conjugate_verb('do', root.tag_), prefer_contractions)} "
                      f"{self.get_base_verb(root.text.lower())}",
                 has_space_after=root._.has_space_after
             )}
@@ -175,17 +175,17 @@ class Negator:
         self,
         verb: str,
         tag: str = None,
-        use_contractions: bool = True
+        prefer_contractions: bool = True
     ) -> str:
         if not verb:
             return ""
-        negated_aux = self.negate_aux(verb, use_contractions)
+        negated_aux = self.negate_aux(verb, prefer_contractions)
         if negated_aux:
             return negated_aux
         if tag is None:  # infer tag
             tag = self._parse(verb)[0].tag_
         return (
-            f"{self.negate_aux(self.conjugate_verb('do', tag), use_contractions)} "
+            f"{self.negate_aux(self.conjugate_verb('do', tag), prefer_contractions)} "
             f"{self.get_base_verb(verb.lower())}"
         )
 
@@ -200,15 +200,15 @@ class Negator:
     def negate_aux(
         self,
         auxiliary_verb: str,
-        use_contractions: bool = True
+        prefer_contractions: bool = True
     ) -> Optional[str]:
-        return self._aux_negations[use_contractions].get(auxiliary_verb)
+        return self._aux_negations[prefer_contractions].get(auxiliary_verb)
 
     def _negate_aux_in_doc(
         self,
         aux: Union[Token, SpacyToken],
         doc: SpacyDoc,
-        use_contractions: bool = True
+        prefer_contractions: bool = True
     ) -> str:
         negation = self._get_negated_child(aux)
         # If AUX negated -> Remove negation.
@@ -253,7 +253,7 @@ class Negator:
         remove = [aux.i]
         add = {
             aux.i: Token(
-                text=self.negate_aux(aux_text, use_contractions),
+                text=self.negate_aux(aux_text, prefer_contractions),
                 has_space_after=aux._.has_space_after
             )
         }
