@@ -78,6 +78,14 @@ class Negator:
         # Any negations we can remove? (e.g.: "I don't know.", "They won't
         # complain.", "He has not done it.", etc.).
         negation = self._get_negated_child(root)
+        # Handle sentences such as "Not to mention that they weren't there."
+        # We want to prevent taking the first "Not" as the negation, since this
+        # complicates things.
+        first_aux_or_verb = self._get_first_aux_or_verb(doc)
+        while (negation and first_aux_or_verb
+                   and negation.i < first_aux_or_verb.i):
+            # Search for another negation, if any.
+            negation = self._get_negated_child(root, min_index=negation.i+1)
         if negation:
             aux_child = self._get_aux_child(root)
             # General verbs -> Remove negation and conjugate verb.
@@ -128,9 +136,14 @@ class Negator:
                 # "I am not doing great."
                 space_before = " " * int(root.i > 0
                                         and doc[root.i-1]._.has_space_after)
+                # Negation can come before ("She will not ever go.") or after
+                # the root ("She will not."). Space after is different in each
+                # case.
+                space_after = (negation._.has_space_after if negation.i > root.i
+                               else root._.has_space_after)
                 add = {root.i: Token(
                     text=f"{space_before}{root.text}",
-                    has_space_after=negation._.has_space_after
+                    has_space_after=space_after
                 )}
                 # Special case "do" -> Also remove "do" and conjugate verb.
                 # E.g.: "He doesn't like it." -> "He likes it".
@@ -300,17 +313,36 @@ class Negator:
         root = [tk for tk in doc if tk.dep_ == "ROOT"]
         return root[0] if root else None
 
-    def _get_negated_child(self, token: SpacyToken) -> Optional[SpacyToken]:
+    def _get_negated_child(
+        self,
+        token: SpacyToken,
+        min_index: int = 0
+    ) -> Optional[SpacyToken]:
         if not token:
             return None
-        child = [child for child in token.children if child.dep == neg]
+        min_index = max(0, min_index)  # prevent negative values
+        child = [child for child in token.children if child.dep == neg
+                                                      and child.i >= min_index]
         return child[0] if child else None
 
-    def _get_aux_child(self, token: SpacyToken) -> Optional[SpacyToken]:
+    def _get_aux_child(
+        self,
+        token: SpacyToken,
+        min_index: int = 0
+    ) -> Optional[SpacyToken]:
         if not token:
             return None
-        child = [child for child in token.children if self._is_aux(child)]
+        min_index = max(0, min_index)  # prevent negative values
+        child = [child for child in token.children if self._is_aux(child)
+                                                      and child.i >= min_index]
         return child[0] if child else None
+
+    def _get_first_aux_or_verb(
+        self,
+        doc: SpacyDoc
+    ) -> Optional[SpacyToken]:
+        aux = [tk for tk in doc if self._is_aux(tk) or self._is_verb(tk)]
+        return aux[0] if aux else None
 
     def _get_parent(
         self,

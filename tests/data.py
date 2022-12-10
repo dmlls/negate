@@ -279,7 +279,14 @@ misc = [
     ("Do that again.", "Do not do that again.", False),
     ("Do that again.", "Don't do that again.", True),
     ("They will do it asap.", "They won't do it asap.", True),
-    # ("Not that this will ever change.", "Not that this won't ever change.", True),
+    ("Not that this will ever change.", "Not that this won't ever change.", True),
+    ("Not that this will ever change.", "Not that this will not ever change.", False),
+    ("Not that this will not ever change.", "Not that this will ever change.", False),
+    ("Not that this won't ever change.", "Not that this will ever change.", False),
+    ("Not that he thinks a lot.", "Not that he doesn't think a lot.", True),
+    ("Not that he thinks a lot.", "Not that he does not think a lot.", False),
+    ("Not that he doesn't think a lot.", "Not that he thinks a lot.", False),
+    ("Not that he does not think a lot.", "Not that he thinks a lot.", False),
     ("Not for the first time, she felt utterly betrayed.", "Not for the first time, she didn't feel utterly betrayed.", True),
     ("I've studied hard.", "I haven't studied hard.", True),
     ("I've studied hard.", "I have not studied hard.", False),
@@ -294,14 +301,12 @@ misc = [
 
 # Sentences that are currently failing.
 failing = [
-    # POS tagger misclassfications.
+    # POS tagger misclassifications.
     ("I do.", "I don't.", True),  # "do" classified as VERB instead of AUX.
     ("I do.", "I do not.", False),  # "do" classified as VERB instead of AUX.
     ("She does.", "She doesn't.", True),  # "do" classified as VERB instead of AUX.
     ("She does.", "She does not.", False),  # "do" classified as VERB instead of AUX.
     ("She's determined.", "She is not determined.", False),  # "determined" classified as VERB instead of ADJ.
-    # NOT as a single particle (i.e., not negating any AUX or VERB).
-    ("Not that this will ever change.", "Not that this won't ever change.", True),
     # Connectors.
     ("It also prohibits or restricts the use of certain mechanisms.", "It also doesn't prohibit or restrict the use of certain mechanisms.", True),
     # Boolean logic, e.g.: "prohibits AND restricts" -> "doesn't prohibit OR restrict"
