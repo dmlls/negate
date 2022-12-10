@@ -189,15 +189,11 @@ class Negator:
 
     def conjugate_verb(self, verb: str, tag: str) -> str:
         conjugated_verb: Tuple[str] = getInflection(verb, tag)
-        if conjugated_verb:
-            return conjugated_verb[0]
-        return verb
+        return conjugated_verb[0] if conjugated_verb else verb
 
     def get_base_verb(self, verb: str) -> str:
         base_verb: Tuple[str] = getLemma(verb, upos="VERB")
-        if base_verb:
-            return base_verb[0]
-        return verb
+        return base_verb[0] if base_verb else verb
 
     def negate_aux(
         self,
@@ -278,7 +274,7 @@ class Negator:
         # Tokenize.
         doc = self.spacy_model(string_)
         i = 0  # Used to determine whitespaces.
-        for j, tk in enumerate(doc):
+        for tk in doc:
             has_space_after: bool = (
                 i+len(tk) < len(string_) and (string_[i+len(tk)] == " ")
             )
@@ -286,24 +282,17 @@ class Negator:
             i += len(tk) + int(has_space_after)
         return doc
 
-    def _get_root(
-        self,
-        doc: SpacyDoc
-    ) -> Optional[SpacyToken]:
+    def _get_root(self, doc: SpacyDoc) -> Optional[SpacyToken]:
         root = [tk for tk in doc if tk.dep_ == "ROOT"]
         return root[0] if root else None
 
     def _get_negated_child(self, token: SpacyToken) -> Optional[SpacyToken]:
-        for child in token.children:
-            if child.dep == neg:
-                return child
-        return None
+        child = [child for child in token.children if child.dep == neg]
+        return child[0] if child else None
 
     def _get_aux_child(self, token: SpacyToken) -> Optional[SpacyToken]:
-        for child in token.children:
-            if child.pos == AUX:
-                return child
-        return None
+        child = [child for child in token.children if self._is_aux(child)]
+        return child[0] if child else None
 
     def _get_parent(
         self,
@@ -315,9 +304,7 @@ class Negator:
             for potential_parent in doc
             if token in potential_parent.children
         ]
-        if parent:
-            return parent[0]
-        return None
+        return parent[0] if parent else None
 
     def _is_aux(self, token: SpacyToken) -> bool:
         return token.pos == AUX
