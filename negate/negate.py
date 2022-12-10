@@ -1,7 +1,5 @@
 """Negation tools."""
 
-__version__ = "0.7.0"
-
 import logging
 import importlib
 import spacy
@@ -10,7 +8,7 @@ from lemminflect import getInflection, getLemma
 from spacy.symbols import AUX, neg, VERB
 from spacy.tokens import Doc as SpacyDoc
 from spacy.tokens import Token as SpacyToken
-from token import Token
+from .tokens import Token
 
 
 class Negator:
@@ -44,10 +42,10 @@ class Negator:
         if use_transformers:
             if use_gpu:
                 spacy.require_gpu()
-            importlib.import_module("en_core_web_trf")
+            en_core_web_trf = importlib.import_module("en_core_web_trf")
             self.spacy_model = en_core_web_trf.load()
         else:
-            importlib.import_module("en_core_web_md")
+            en_core_web_md = importlib.import_module("en_core_web_md")
             self.spacy_model = en_core_web_md.load()
         # Initialize AUX negation dictionary.
         self._initialize_aux_negations()
@@ -56,11 +54,10 @@ class Negator:
         SpacyToken.set_extension("has_space_after", default=True, force=True)
         # Set up logger.
         logging.basicConfig(
-            format='%(asctime)s %(name)s %(levelname)-8s %(message)s',
-            level=log_level,
-            datefmt='%d/%m/%Y %I:%M:%S %p'
+            format="%(name)s - %(levelname)s: %(message)s",
+            level=log_level
         )
-        self.logger = logging.getLogger(__name__)
+        self.logger = logging.getLogger(__class__.__name__)
 
     def negate_sentence(
         self,
@@ -73,7 +70,7 @@ class Negator:
         root = self._get_root(doc)
 
         if root.pos not in (AUX, VERB):
-            self.logger.warning("sentence not supported. Output might be "
+            self.logger.warning("Sentence not supported. Output might be "
                                 "arbitrary.")
 
         # Any negations we can remove? (e.g.: "I don't know.", "They won't
