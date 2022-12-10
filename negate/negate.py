@@ -67,9 +67,9 @@ class Negator:
         if not sentence:
             return ""
         doc = self._parse(sentence)
-        root = self._get_root(doc)
+        root = self._get_entry_point(doc)
 
-        if not self._is_sentence_supported(doc):
+        if not (root or self._is_sentence_supported(doc)):
             self.logger.warning("Sentence not supported. Output might be "
                                 "arbitrary.")
 
@@ -282,6 +282,18 @@ class Negator:
             i += len(tk) + int(has_space_after)
         return doc
 
+    def _get_entry_point(self, doc: SpacyDoc) -> Optional[SpacyToken]:
+        root = self._get_root(doc)
+        if root is None:  # nothing we can do
+            return None
+        # If the root token is not an AUX or a VERB, look for an AUX or VERB in
+        # its children.
+        if not (self._is_aux(root) or self._is_verb(root)):
+            entry_point = [tk for tk in root.children
+                           if self._is_aux(tk) or self._is_verb(tk)]
+            return entry_point[0] if entry_point else None
+        return root
+
     def _get_root(self, doc: SpacyDoc) -> Optional[SpacyToken]:
         root = [tk for tk in doc if tk.dep_ == "ROOT"]
         return root[0] if root else None
@@ -309,6 +321,9 @@ class Negator:
     def _is_aux(self, token: SpacyToken) -> bool:
         return token.pos == AUX
 
+    def _is_verb(self, token: SpacyToken) -> bool:
+        return token.pos == VERB
+
     def _is_verb_to_do(self, verb: SpacyToken) -> bool:
         return getLemma(verb.text.lower(), "VERB")[0] == "do"
 
@@ -316,7 +331,7 @@ class Negator:
         return getLemma(verb.text.lower(), "VERB")[0] == "be"
 
     def _is_sentence_supported(self, doc: SpacyDoc) -> bool:
-        return any(tk.pos in (AUX, VERB) for tk in doc)
+        return any(self._is_aux(tk) or self._is_verb(tk) for tk in doc)
 
     def _compile_sentence(
         self,
