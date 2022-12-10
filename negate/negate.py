@@ -69,7 +69,7 @@ class Negator:
         doc = self._parse(sentence)
         root = self._get_root(doc)
 
-        if root.pos not in (AUX, VERB):
+        if not self._is_sentence_supported(doc):
             self.logger.warning("Sentence not supported. Output might be "
                                 "arbitrary.")
 
@@ -327,6 +327,9 @@ class Negator:
 
     def _is_verb_to_be(self, verb: SpacyToken) -> bool:
         return getLemma(verb.text.lower(), "VERB")[0] == "be"
+
+    def _is_sentence_supported(self, doc: SpacyDoc) -> bool:
+        return any(tk.pos in (AUX, VERB) for tk in doc)
 
     def _compile_sentence(
         self,
