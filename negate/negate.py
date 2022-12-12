@@ -69,7 +69,7 @@ class Negator:
         doc = self._parse(sentence)
         root = self._get_entry_point(doc)
 
-        if not (root or self._is_sentence_supported(doc)):
+        if not root or not self._is_sentence_supported(doc):
             self.logger.warning("Sentence not supported. Output might be "
                                 "arbitrary.")
             if not root:  # Don't even bother trying :)
@@ -304,8 +304,8 @@ class Negator:
         # If the root token is not an AUX or a VERB, look for an AUX or VERB in
         # its children.
         if not (self._is_aux(root) or self._is_verb(root)):
-            entry_point = [tk for tk in root.children
-                           if self._is_aux(tk) or self._is_verb(tk)]
+            entry_point = [tk for tk in doc if self._is_aux(tk)
+                                               or self._is_verb(tk)]
             return entry_point[0] if entry_point else None
         return root
 
