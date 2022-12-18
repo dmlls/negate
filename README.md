@@ -6,6 +6,9 @@
   <a href="https://pypi.org/project/negate/">
     <img src="https://img.shields.io/badge/release-beta-green">
   </a>
+  <a href="https://deepsource.io/gh/dmlls/negate/?ref=repository-badge" target="_blank">
+      <img alt="Active Issues" title="DeepSource" src="https://deepsource.io/gh/dmlls/negate.svg/?label=active+issues&token=D9QCfE028iloctbSdOhywtZy"/>
+  </a>
 </p>
 
 <br>
