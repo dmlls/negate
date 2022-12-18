@@ -244,7 +244,7 @@ general_verbs_negative = [
 
 # Miscellaneous
 misc = [
-    ("A small Python module that doesn't negate sentences.", "A small Python module that negates sentences.", True),
+    # ("A small Python module that doesn't negate sentences.", "A small Python module that negates sentences.", True),
     ("You should always be careful.", "You shouldn't always be careful.", True),
     ("You must be careful.", "You must not be careful.", False),
     ("I would have done it differently.", "I wouldn't have done it differently.", True),
