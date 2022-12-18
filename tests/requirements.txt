@@ -1,4 +1,2 @@
 pytest>=7.2.0,<7.3.0
-# negate[transformers]
-en_core_web_md @ https://github.com/explosion/spacy-models/releases/download/en_core_web_md-3.4.1/en_core_web_md-3.4.1-py3-none-any.whl
-en_core_web_trf @ https://github.com/explosion/spacy-models/releases/download/en_core_web_trf-3.4.1/en_core_web_trf-3.4.1-py3-none-any.whl
+# TODO: negate

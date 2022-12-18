@@ -2,7 +2,10 @@
 
 import logging
 import importlib
+import os
+import sys
 import spacy
+from contextlib import contextmanager
 from typing import Dict, List, Optional, Tuple, Union
 from lemminflect import getInflection, getLemma
 from spacy.symbols import AUX, neg, VERB
@@ -18,7 +21,7 @@ class Negator:
         self,
         use_transformers: Optional[bool] = False,
         use_gpu: Optional[bool] = False,
-        log_level: Optional[int] = logging.WARNING
+        log_level: Optional[int] = logging.INFO
     ):
         """Instanciate a :obj:`Negator`.
 
@@ -30,34 +33,29 @@ class Negator:
                 .. note::
 
                    When set to :obj:`True` the model <en_core_web_trf
-                   `https://spacy.io/models/en#en_core_web_trf`>__ is used. This
-                   model is an optional dependency not installed by default.
+                   `https://spacy.io/models/en#en_core_web_trf`>__ is used.
             use_gpu (:obj:`Optional[bool]`, defaults to :obj:`False`):
                 Whether to use the GPU, if available. This parameter is ignored
                 when :param:`use_transformers` is set to :obj:`False`.
-            log_level (:obj:`Optional[int]`, defaults to ``logging.WARNING``):
+            log_level (:obj:`Optional[int]`, defaults to ``logging.INFO``):
                 The level of the logger.
         """
-        # Load Spacy model.
-        if use_transformers:
-            if use_gpu:
-                spacy.require_gpu()
-            en_core_web_trf = importlib.import_module("en_core_web_trf")
-            self.spacy_model = en_core_web_trf.load()
-        else:
-            en_core_web_md = importlib.import_module("en_core_web_md")
-            self.spacy_model = en_core_web_md.load()
-        # Initialize AUX negation dictionary.
-        self._initialize_aux_negations()
-        # Store whether tokens have a whitespace after them. This is used later
-        # on for detokenization.
-        SpacyToken.set_extension("has_space_after", default=True, force=True)
         # Set up logger.
         logging.basicConfig(
             format="%(name)s - %(levelname)s: %(message)s",
             level=log_level
         )
         self.logger = logging.getLogger(__class__.__name__)
+        # Load Spacy model. If not available locally, the model will be first
+        # installed.
+        if use_transformers and use_gpu:
+            spacy.require_gpu()
+        self.spacy_model = self._initialize_spacy_model(use_transformers)
+        # Initialize AUX negation dictionary.
+        self._initialize_aux_negations()
+        # Store whether tokens have a whitespace after them. This is used later
+        # on for detokenization.
+        SpacyToken.set_extension("has_space_after", default=True, force=True)
 
     def negate_sentence(
         self,
@@ -413,6 +411,54 @@ class Negator:
         if not string_:
             return ""
         return " ".join(string_.split())
+
+    def _initialize_spacy_model(
+        self,
+        use_transformers: bool,
+        **kwargs
+    ) -> spacy.language.Language:
+        """Initialize the Spacy model to be used by the Negator.
+
+        Heavily inspired by `https://github.com/BramVanroy/spacy_download`__.
+
+        Args:
+            use_transformers (:obj:`Optional[bool]`, defaults to :obj:`False`):
+                Whether to use a Transformer model for POS tagging and
+                dependency parsing.
+
+                .. note::
+
+                   When set to :obj:`True` the model <en_core_web_trf
+                   `https://spacy.io/models/en#en_core_web_trf`>__ is used.
+            **kwargs:
+                Additional arguments passed to :func:`spacy.load`.
+
+        Returns:
+            :obj:`spacy.language.Language`: The loaded Spacy model, ready to
+            use.
+        """
+        # See https://stackoverflow.com/a/25061573/14683209
+        # We don't want the messages coming from pip to pollute the stdout.
+        @contextmanager
+        def suppress_stdout():
+            with open(os.devnull, "w") as devnull:
+                old_stdout = sys.stdout
+                sys.stdout = devnull
+                try:
+                    yield
+                finally:
+                    sys.stdout = old_stdout
+
+        model_name = "en_core_web_trf" if use_transformers else "en_core_web_md"
+        try:  # Model installed?
+            model_module = importlib.import_module(model_name)
+        except ModuleNotFoundError:  # Download and install model.
+            self.logger.info("Downloading model. This only needs to happen "
+                             "once. Please, be patient...")
+            with suppress_stdout():
+                spacy.cli.download(model_name, False, False, "-q")
+            model_module = importlib.import_module(model_name)
+        return model_module.load(**kwargs)
 
     def _initialize_aux_negations(self):
         self._aux_negations = {
