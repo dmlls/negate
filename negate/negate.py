@@ -302,8 +302,15 @@ class Negator:
         # If the root token is not an AUX or a VERB, look for an AUX or VERB in
         # its children.
         if not (self._is_aux(root) or self._is_verb(root)):
-            entry_point = [tk for tk in doc if self._is_aux(tk)
-                                               or self._is_verb(tk)]
+            entry_point = None
+            if root.children:
+                entry_point = [tk for tk in root.children
+                               if self._is_aux(tk) or self._is_verb(tk)]
+            # No AUX or VERB found in the root children -> Take the first AUX
+            # or VERB in the sentence, if any.
+            if not entry_point:
+                entry_point = [tk for tk in doc
+                               if self._is_aux(tk) or self._is_verb(tk)]
             return entry_point[0] if entry_point else None
         return root
 
