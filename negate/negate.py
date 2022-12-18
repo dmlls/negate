@@ -46,7 +46,7 @@ class Negator:
             level=log_level
         )
         self.logger = logging.getLogger(__class__.__name__)
-        # Load Spacy model. If not available locally, the model will be first
+        # Load spaCy model. If not available locally, the model will be first
         # installed.
         if use_transformers and use_gpu:
             spacy.require_gpu()
@@ -417,7 +417,7 @@ class Negator:
         use_transformers: bool,
         **kwargs
     ) -> spacy.language.Language:
-        """Initialize the Spacy model to be used by the Negator.
+        """Initialize the spaCy model to be used by the Negator.
 
         Heavily inspired by `https://github.com/BramVanroy/spacy_download`__.
 
@@ -434,7 +434,7 @@ class Negator:
                 Additional arguments passed to :func:`spacy.load`.
 
         Returns:
-            :obj:`spacy.language.Language`: The loaded Spacy model, ready to
+            :obj:`spacy.language.Language`: The loaded spaCy model, ready to
             use.
         """
         # See https://stackoverflow.com/a/25061573/14683209
