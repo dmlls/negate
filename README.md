@@ -99,6 +99,47 @@ sentence that haven't been modified.</small></sub>
 
 <br>
 
+### Behavior upon unsupported sentences
+
+Currently, negate will not be able to negate certain types of sentences (see
+[Current Limitations](#current-limitations) and [Irremediable
+Caveats](#irremediable-caveats)).
+
+In some cases, negate will detect that a sentence is not supported. By default,
+a warning will be issued:
+
+```console
+Negator - WARNING: Sentence not supported. Output might be arbitrary.
+```
+
+<br>
+
+If you want the negator to fail instead of printing a warning, simply initialize
+it with `fail_on_unsupported` set to `True`, i.e.:
+
+```Python
+negator = Negator(fail_on_unsupported=True)
+```
+
+<br>
+
+This can be useful to skip unsupported sentences when running negate on a batch
+of sentences, e.g.:
+
+```Python
+negator = Negator(fail_on_unsupported=True)
+sentences = [...]
+negated_sentences = []
+
+for sent in sentences:
+    try:
+        negated_sentences.append(negator.negate_sentence(sent))
+    except RuntimeError:
+        pass  # skip unsupported sentence
+```
+
+<br>
+
 ## Current Limitations
 
 **Negate should work fine for most cases.** However, it is currently in beta
