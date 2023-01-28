@@ -190,11 +190,13 @@ class Negator:
             )
 
         # General verb non-negated.
+        negated_aux = self.negate_aux(self.conjugate_verb('do', root.tag_),
+                                      prefer_contractions)
         return self._compile_sentence(
             doc,
             remove_tokens=[root.i],
             add_tokens={root.i: Token(
-                text=f"{self.negate_aux(self.conjugate_verb('do', root.tag_), prefer_contractions)} "
+                text=f"{negated_aux if negated_aux is not None else ''} "
                      f"{self.get_base_verb(root.text.lower())}",
                 has_space_after=root._.has_space_after
             )}
@@ -231,7 +233,12 @@ class Negator:
         auxiliary_verb: str,
         prefer_contractions: bool = True
     ) -> Optional[str]:
-        return self._aux_negations[prefer_contractions].get(auxiliary_verb)
+        negated_aux = self._aux_negations[prefer_contractions].get(
+            auxiliary_verb
+        )
+        if negated_aux is None:
+            self._handle_unsupported()
+        return negated_aux
 
     def _negate_aux_in_doc(
         self,
