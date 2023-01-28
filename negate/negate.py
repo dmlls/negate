@@ -19,9 +19,10 @@ class Negator:
 
     def __init__(
         self,
-        use_transformers: Optional[bool] = False,
-        use_gpu: Optional[bool] = False,
-        log_level: Optional[int] = logging.INFO
+        use_transformers: Optional[bool] = None,
+        use_gpu: Optional[bool] = None,
+        fail_on_unsupported: Optional[bool] = None,
+        log_level: Optional[int] = None
     ):
         """Instanciate a :obj:`Negator`.
 
@@ -37,15 +38,33 @@ class Negator:
             use_gpu (:obj:`Optional[bool]`, defaults to :obj:`False`):
                 Whether to use the GPU, if available. This parameter is ignored
                 when :param:`use_transformers` is set to :obj:`False`.
+            fail_on_unsupported (:obj:`Optional[bool]`, defaults to :obj:`False`):
+                Whether to fail upon non-supported sentences. If set to
+                :obj:`False`, a warning will be printed, and the sentence will
+                try to be negated in a best-effort fashion.
             log_level (:obj:`Optional[int]`, defaults to ``logging.INFO``):
                 The level of the logger.
+
+        Raises:
+            :obj:`RuntimeError`: If the sentence is not supported and
+            :arg:`fail_on_unsupported` is set to :obj:`True`.
         """
+        if use_transformers is None:
+            use_transformers = False
+        if use_gpu is None:
+            use_gpu = False
+        if fail_on_unsupported is None:
+            fail_on_unsupported = False
+        if log_level is None:
+            log_level = logging.INFO
+
         # Set up logger.
         logging.basicConfig(
             format="%(name)s - %(levelname)s: %(message)s",
             level=log_level
         )
         self.logger = logging.getLogger(__class__.__name__)
+        self.fail_on_unsupported = fail_on_unsupported
         # Load spaCy model. If not available locally, the model will be first
         # installed.
         if use_transformers and use_gpu:
@@ -68,8 +87,7 @@ class Negator:
         root = self._get_entry_point(doc)
 
         if not root or not self._is_sentence_supported(doc):
-            self.logger.warning("Sentence not supported. Output might be "
-                                "arbitrary.")
+            self._handle_unsupported()
             if not root:  # Don't even bother trying :)
                 return sentence
 
@@ -404,10 +422,12 @@ class Negator:
         for count, item in enumerate(add_tokens.items()):
             i, tk = item
             tokens.insert(i+count, tk)
-        return self._capitalize_first_letter(self._remove_extra_whitespaces(
-            "".join([f"{tk.text}{' '*int(tk.has_space_after)}"
-                                 for tk in tokens])
-            ))
+        return self._capitalize_first_letter(
+            self._remove_extra_whitespaces(
+                "".join([f"{tk.text}{' '*int(tk.has_space_after)}"
+                         for tk in tokens])
+                )
+            )
 
     def _capitalize_first_letter(self, string_: str) -> str:
         if not string_:
@@ -466,6 +486,19 @@ class Negator:
                 spacy.cli.download(model_name, False, False, "-q")
             model_module = importlib.import_module(model_name)
         return model_module.load(**kwargs)
+
+    def _handle_unsupported(self):
+        """Handle behavior upon unsupported sentences.
+
+        Raises:
+            :obj:`RuntimeError`: If :arg:`fail_on_unsupported` is set to
+            :obj:`True`.
+        """
+        if self.fail_on_unsupported:
+            raise RuntimeError("Sentence not supported.")
+        else:
+            self.logger.warning("Sentence not supported. Output might be "
+                                "arbitrary.")
 
     def _initialize_aux_negations(self):
         self._aux_negations = {
