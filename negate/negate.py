@@ -183,11 +183,17 @@ class Negator:
             # If the AUX has AUX children, negate them instead. E.g.: "I will
             # be there." or "They have been moody lately."
             aux_child = self._get_aux_child(root)
-            return self._negate_aux_in_doc(
-                aux=root if not aux_child else aux_child,
-                doc=doc,
-                prefer_contractions=prefer_contractions
-            )
+            try:
+                return self._negate_aux_in_doc(
+                    aux=root if not aux_child else aux_child,
+                    doc=doc,
+                    prefer_contractions=prefer_contractions,
+                    fail_on_unsupported=True
+                )
+            except RuntimeError:
+                # In cases such as "I expect everything to be ready.", continue
+                # trying to negate the root verb instead.
+                pass
 
         # General verb non-negated.
         negated_aux = self.negate_aux(self.conjugate_verb('do', root.tag_),
@@ -231,21 +237,33 @@ class Negator:
     def negate_aux(
         self,
         auxiliary_verb: str,
-        prefer_contractions: bool = True
+        prefer_contractions: Optional[bool] = None,
+        fail_on_unsupported: Optional[bool] = None
     ) -> Optional[str]:
+        if prefer_contractions is None:
+            prefer_contractions = True
+        if fail_on_unsupported is None:
+            fail_on_unsupported = self.fail_on_unsupported
+
         negated_aux = self._aux_negations[prefer_contractions].get(
             auxiliary_verb
         )
         if negated_aux is None:
-            self._handle_unsupported()
+            self._handle_unsupported(fail_on_unsupported)
         return negated_aux
 
     def _negate_aux_in_doc(
         self,
         aux: Union[Token, SpacyToken],
         doc: SpacyDoc,
-        prefer_contractions: bool = True
+        prefer_contractions: Optional[bool] = None,
+        fail_on_unsupported: Optional[bool] = None
     ) -> str:
+        if prefer_contractions is None:
+            prefer_contractions = True
+        if fail_on_unsupported is None:
+            fail_on_unsupported = self.fail_on_unsupported
+
         negation = self._get_negated_child(aux)
         # If AUX negated -> Remove negation.
         if negation:
@@ -289,7 +307,11 @@ class Negator:
         remove = [aux.i]
         add = {
             aux.i: Token(
-                text=self.negate_aux(aux_text, prefer_contractions),
+                text=self.negate_aux(
+                    aux_text,
+                    prefer_contractions,
+                    fail_on_unsupported=fail_on_unsupported
+                ),
                 has_space_after=aux._.has_space_after
             )
         }
@@ -494,14 +516,19 @@ class Negator:
             model_module = importlib.import_module(model_name)
         return model_module.load(**kwargs)
 
-    def _handle_unsupported(self):
+    def _handle_unsupported(self, fail: Optional[bool] = None):
         """Handle behavior upon unsupported sentences.
 
+        Args:
+            fail (:obj:`Optional[bool]`):
+                Whether to raise an exception with unsupported sentences of not.
         Raises:
             :obj:`RuntimeError`: If :arg:`fail_on_unsupported` is set to
             :obj:`True`.
         """
-        if self.fail_on_unsupported:
+        if fail is None:
+            fail = self.fail_on_unsupported
+        if fail:
             raise RuntimeError("Sentence not supported.")
         else:
             self.logger.warning("Sentence not supported. Output might be "
