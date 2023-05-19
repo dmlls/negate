@@ -22,7 +22,8 @@ def pytest_generate_tests(metafunc):
                 # `use_gpu` ignored if `use_transformers` is False.
                 negator_model = Negator(
                     use_transformers=use_transformers, use_gpu=True)
-            except ValueError:  # "No GPU devices detected"
+                negator_model.negate_sentence("I will now check GPU support!")
+            except (ValueError, NotImplementedError):  # GPU not supported
                 negator_model = Negator(
                     use_transformers=use_transformers, use_gpu=False)
         metafunc.parametrize("negator", [negator_model])

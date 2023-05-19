@@ -69,6 +69,8 @@ class Negator:
         # installed.
         if use_transformers and use_gpu:
             spacy.require_gpu()
+        else:
+            spacy.require_cpu()
         self.spacy_model = self._initialize_spacy_model(use_transformers)
         # Initialize AUX negation dictionary.
         self._initialize_aux_negations()
@@ -497,7 +499,7 @@ class Negator:
         # We don't want the messages coming from pip to pollute the stdout.
         @contextmanager
         def suppress_stdout():
-            with open(os.devnull, "w") as devnull:
+            with open(os.devnull, "w", encoding="utf-8") as devnull:
                 old_stdout = sys.stdout
                 sys.stdout = devnull
                 try:
