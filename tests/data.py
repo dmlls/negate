@@ -156,6 +156,7 @@ aux_root_children_affirmative = [
     ("I should have done it.", "I should not have done it.", False),
     ("I should've done it.", "I shouldn't have done it.", True),
     ("I should've done it.", "I should not have done it.", False),
+    ("I expect everything to be ready.", "I don't expect everything to be ready.", True),
 ]
 
 # AUX in ROOT children - Negative
@@ -216,6 +217,7 @@ aux_root_children_negative = [
     ("I shouldn't have done it.", "I should have done it.", False),
     ("I should not have done it.", "I should have done it.", True),
     ("I should not have done it.", "I should have done it.", False),
+    ("I don't expect everything to be ready.", "I expect everything to be ready.", True),
 ]
 
 # General verbs - Affirmative
