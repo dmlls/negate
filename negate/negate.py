@@ -210,24 +210,6 @@ class Negator:
             )}
         )
 
-    def negate_verb(
-        self,
-        verb: str,
-        tag: str = None,
-        prefer_contractions: bool = True
-    ) -> str:
-        if not verb:
-            return ""
-        negated_aux = self.negate_aux(verb, prefer_contractions)
-        if negated_aux:
-            return negated_aux
-        if tag is None:  # infer tag
-            tag = self._parse(verb)[0].tag_
-        return (
-            f"{self.negate_aux(self.conjugate_verb('do', tag), prefer_contractions)} "
-            f"{self.get_base_verb(verb.lower())}"
-        )
-
     def conjugate_verb(self, verb: str, tag: str) -> str:
         conjugated_verb: Tuple[str] = getInflection(verb, tag)
         return conjugated_verb[0] if conjugated_verb else verb
