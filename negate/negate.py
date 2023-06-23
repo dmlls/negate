@@ -33,8 +33,8 @@ class Negator:
 
                 .. note::
 
-                   When set to :obj:`True` the model <en_core_web_trf
-                   `https://spacy.io/models/en#en_core_web_trf`>__ is used.
+                   When set to :obj:`True` the model `en_core_web_trf
+                   <https://spacy.io/models/en#en_core_web_trf>`__ is used.
             use_gpu (:obj:`Optional[bool]`, defaults to :obj:`False`):
                 Whether to use the GPU, if available. This parameter is ignored
                 when :param:`use_transformers` is set to :obj:`False`.
@@ -81,10 +81,33 @@ class Negator:
     def negate_sentence(
         self,
         sentence: str,
-        prefer_contractions: bool = True
+        prefer_contractions: Optional[bool] = None
     ) -> str:
+        """Negate a sentence.
+
+        Affirmative sentences will be turned into negative ones and vice versa.
+
+        .. note::
+
+            Currently, only sentences that contain at least one verb are
+            supported. The output of non-supported sentences might be arbitrary.
+
+        Args:
+            sentence (:obj:`str`):
+                The sentence to negate.
+            prefer_contractions (:obj:`Optional[bool]`, defaults to :obj:`True`):
+                Whether, in case the negated part of the sentence is an
+                auxiliary verb, get its contracted form (e.g., ``"isn't"``,
+                ``"haven't"``, ``"wouldn't"``, etc.).
+
+        Returns:
+            :obj:`str`: The negated sentence.
+        """
         if not sentence:
             return ""
+        if prefer_contractions is None:
+            prefer_contractions = True
+
         doc = self._parse(sentence)
         root = self._get_entry_point(doc)
 
@@ -211,10 +234,34 @@ class Negator:
         )
 
     def conjugate_verb(self, verb: str, tag: str) -> str:
+        """Conjugate a verb to a tense.
+
+        Args:
+            verb (:obj:`str`):
+                The verb to conjugate.
+            tag (:obj:`str`):
+                The target tense, specified as a `Penn Treebank POS tag
+                <https://www.ling.upenn.edu/courses/Fall_2003/ling001/penn_treebank_pos.html>`__.
+
+        Returns:
+            :obj:`str`: The conjugated verb. If the verb could not be
+            conjugated, it is returned unchanged.
+        """
+        self.logger.warning(tag)
         conjugated_verb: Tuple[str] = getInflection(verb, tag)
         return conjugated_verb[0] if conjugated_verb else verb
 
     def get_base_verb(self, verb: str) -> str:
+        """Get the base form (infinitive) of a verb.
+
+        Args:
+            verb (:obj:`str`):
+                The verb to get the base form of.
+
+        Returns:
+            :obj:`str`: The base form of the verb. If the base form could not
+            be inferred, the verb is returned unchanged.
+        """
         base_verb: Tuple[str] = getLemma(verb, upos="VERB")
         return base_verb[0] if base_verb else verb
 
@@ -224,6 +271,30 @@ class Negator:
         prefer_contractions: Optional[bool] = None,
         fail_on_unsupported: Optional[bool] = None
     ) -> Optional[str]:
+        """Get the negated form of an auxiliary verb.
+
+        .. note::
+
+           This method negates unidirectionally from affirmative to negative.
+           In other words, :param:`auxiliary_verb` must be a non-negated
+           auxiliary, e.g., ``"is"``, ``"can"``, ``"must"``, etc.
+
+        Args:
+            auxiliary_verb (:obj:`str`):
+                The auxiliary verb to get the negation form of.
+            prefer_contractions (:obj:`Optional[bool]`, defaults to :obj:`True`):
+                Whether to get the contracted form of the auxiliary (e.g.,
+                ``"isn't"``, ``"haven't"``, ``"wouldn't"``, etc.).
+            fail_on_unsupported (:obj:`Optional[bool]`, defaults to :attr:`fail_on_unsupported`):
+                Whether to fail in case the passed auxiliary is not supported.
+                Since the set of auxiliary verbs is finite, this method will
+                only fail if the :param:`auxiliary_verb` is not an auxiliary, or
+                the negated form of the auxiliary has been passed.
+
+        Returns:
+            :obj:`Optional[str]`: The negated form of the auxiliary, or
+            :obj:`None` in case :param:`auxiliary_verb` is not supported.
+        """
         if prefer_contractions is None:
             prefer_contractions = True
         if fail_on_unsupported is None:
@@ -236,6 +307,8 @@ class Negator:
             self._handle_unsupported(fail_on_unsupported)
         return negated_aux
 
+
+    # TODO: Check for duplicate code.
     def _negate_aux_in_doc(
         self,
         aux: Union[Token, SpacyToken],
@@ -243,6 +316,29 @@ class Negator:
         prefer_contractions: Optional[bool] = None,
         fail_on_unsupported: Optional[bool] = None
     ) -> str:
+        """Negate an auxiliary within a sentence.
+
+        .. note::
+
+           This method, differently from :meth:`Negator.SpacyDoc`, is
+           bidirectional. That means that the passed auxiliary can be in its
+           affirmative or negative form.
+
+        Args:
+            aux (:obj:`Union[Token, SpacyToken]`):
+                The auxiliary verb to negate
+            doc (:obj:`SpacyDoc`):
+                The spaCy doc containing the auxiliary.
+            prefer_contractions (:obj:`Optional[bool]`, defaults to :obj:`True`):
+                Whether to get the contracted form of the auxiliary (e.g.,
+                ``"isn't"``, ``"haven't"``, ``"wouldn't"``, etc.).
+            fail_on_unsupported (:obj:`Optional[bool]`, defaults to :attr:`fail_on_unsupported`):
+                Whether to fail in case the passed auxiliary is not supported.
+
+        Returns:
+            :obj:`str`: The resulting sentence, with one of its auxiliary verbs
+            (if any) negated.
+        """
         if prefer_contractions is None:
             prefer_contractions = True
         if fail_on_unsupported is None:
@@ -313,6 +409,19 @@ class Negator:
         )
 
     def _parse(self, string_: str) -> SpacyDoc:
+        """Parse a string.
+
+        This method cleans up the string and tokenizes it. The resulting
+        :obj:`SpacyDoc` object, also includes information about whitespaces to
+        facilitate de-tokenization later on.
+
+        Args:
+            string_ (:obj:`str`):
+                The string to parse.
+
+        Returns:
+            :obj:`SpacyDoc`: The string tokenized into a spaCy document.
+        """
         # Remove extra whitespaces and other non-printable chars.
         string_ = self._remove_extra_whitespaces(string_)
         # Tokenize.
@@ -327,6 +436,16 @@ class Negator:
         return doc
 
     def _get_entry_point(self, doc: SpacyDoc) -> Optional[SpacyToken]:
+        """Choose a suitable verb to attempt negating first, if any.
+
+        Args:
+            doc (:obj:`SpacyDoc`):
+                The spaCy document in which to find the entry point.
+
+        Returns:
+            :obj:`Optional[SpacyToken]`: The chosen entry point (verb), or
+            :obj:`None` if the sentence has no root, or contains no verbs.
+        """
         root = self._get_root(doc)
         if root is None:  # nothing we can do
             return None
@@ -346,6 +465,16 @@ class Negator:
         return root
 
     def _get_root(self, doc: SpacyDoc) -> Optional[SpacyToken]:
+        """Get the root token in a spaCy document, if any.
+
+        Args:
+            doc (:obj:`SpacyDoc`):
+                The spaCy document to get the root from.
+
+        Returns:
+            :obj:`Optional[SpacyToken]`: The root token, or :obj:`None` if the
+            sentence has no root.
+        """
         root = [tk for tk in doc if tk.dep_ == "ROOT"]
         return root[0] if root else None
 
@@ -354,6 +483,23 @@ class Negator:
         token: SpacyToken,
         min_index: int = 0
     ) -> Optional[SpacyToken]:
+        """Get the negated child of a token, if any.
+
+        Only the first negated child with an index equal or greater than
+        :param:`min_index` is returned.
+
+        Args:
+            token (:obj:`SpacyToken`):
+                The spaCy token to get the negated child from.
+            min_index (:obj:`int`, defaults to ``0``):
+                The minimum index (inclusive) the negated child must have in
+                order to be returned. Useful to consider children on the left
+                or the right of the passed token.
+
+        Returns:
+            :obj:`Optional[SpacyToken]`: The negated child of :param:`token`, or
+            :obj:`None` if no negated child was found.
+        """
         if not token:
             return None
         min_index = max(0, min_index)  # prevent negative values
@@ -366,6 +512,23 @@ class Negator:
         token: SpacyToken,
         min_index: int = 0
     ) -> Optional[SpacyToken]:
+        """Get the child of a token that is an auxiliary verb, if any.
+
+        Only the first child that is an auxiliary with an index equal or greater
+        than :param:`min_index` is returned.
+
+        Args:
+            token (:obj:`SpacyToken`):
+                The spaCy token to get the auxiliary children from.
+            min_index (:obj:`int`, defaults to ``0``):
+                The minimum index (inclusive) the auxiliary child must have in
+                order to be returned. Useful to consider children on the left
+                or the right of the passed token.
+
+        Returns:
+            :obj:`Optional[SpacyToken]`: The auxiliary child of :param:`token`,
+            or :obj:`None` if no auxiliary child was found.
+        """
         if not token:
             return None
         min_index = max(0, min_index)  # prevent negative values
@@ -377,6 +540,18 @@ class Negator:
         self,
         doc: SpacyDoc
     ) -> Optional[SpacyToken]:
+        """Get the first verb in a spaCy document.
+
+        The verb can be an auxiliary or not.
+
+        Args:
+            doc (:obj:`SpacyDoc`):
+                The spaCy document to get the first verb from.
+
+        Returns:
+            :obj:`Optional[SpacyToken]`: The first verb in the document or
+            :obj:`None` if no verb was found.
+        """
         aux = [tk for tk in doc if self._is_aux(tk) or self._is_verb(tk)]
         return aux[0] if aux else None
 
@@ -385,6 +560,18 @@ class Negator:
         token: SpacyToken,
         doc: SpacyDoc
     ) -> Optional[SpacyToken]:
+        """Get the parent of a given token, if any.
+
+        Args:
+            token (:obj:`SpacyToken`):
+                The spaCy token to get the parent of.
+            doc (:obj:`SpacyDoc`):
+                The spaCy document in which to find for the parent.
+
+        Returns:
+            :obj:`Optional[SpacyToken]`: The parent of the token, or :obj:`None`
+            if the token has no parent.
+        """
         if not token:
             return None
         parent = [
@@ -395,34 +582,112 @@ class Negator:
         return parent[0] if parent else None
 
     def _is_aux(self, token: SpacyToken) -> bool:
+        """Determine whether a token is an auxiliary verb.
+
+        Args:
+            token (:obj:`SpacyToken`):
+                The spaCy token to determine whether it is auxiliary.
+
+        Returns:
+            :obj:`bool`: :obj:`True` if the token is an auxiliary verb,
+            otherwise :obj:`False`.
+        """
         if not token:
             return False
         return token.pos == AUX
 
     def _is_verb(self, token: SpacyToken) -> bool:
+        """Determine whether a token is a non-auxiliary verb.
+
+        .. note::
+
+            If you want to check if a token is either an auxiliary *or* a verb,
+            you can use this method in combination with :meth:`Negator._is_aux`.
+
+        Args:
+            token (:obj:`SpacyToken`):
+                The spaCy token to determine whether it is a non-auxiliary verb.
+
+        Returns:
+            :obj:`bool`: :obj:`True` if the token is a non-auxiliary verb,
+            otherwise :obj:`False`.
+        """
         if not token:
             return False
         return token.pos == VERB
 
     def _is_verb_to_do(self, verb: SpacyToken) -> bool:
+        """Determine whether a verb is the verb "to do" (in any tense).
+
+        Args:
+            verb (:obj:`SpacyToken`):
+                The verb to determine whether it is the verb "to do".
+
+        Returns:
+            :obj:`bool`: :obj:`True` if the verb is the verb "to do", otherwise
+            :obj:`False`.
+        """
         if not verb:
             return False
         return getLemma(verb.text.lower(), "VERB")[0] == "do"
 
     def _is_verb_to_be(self, verb: SpacyToken) -> bool:
+        """Determine whether a verb is the verb "to be" (in any tense).
+
+        Args:
+            verb (:obj:`SpacyToken`):
+                The verb to determine whether it is the verb "to be".
+
+        Returns:
+            :obj:`bool`: :obj:`True` if the verb is the verb "to be", otherwise
+            :obj:`False`.
+        """
         if not verb:
             return False
         return getLemma(verb.text.lower(), "VERB")[0] == "be"
 
     def _is_sentence_supported(self, doc: SpacyDoc) -> bool:
+        """Determine whether a sentence is supported.
+
+        Currently, only sentences that contain at least a verb are supported.
+
+        .. note::
+
+            The output of non-supported sentences might be arbitrary.
+
+        Args:
+            doc (:obj:`SpacyDoc`):
+                The spaCy document representing the sentence to check for
+                support.
+
+        Returns:
+            :obj:`bool`: :obj:`True` if the token is an auxiliary verb,
+            otherwise :obj:`False`.
+        """
         return any(self._is_aux(tk) or self._is_verb(tk) for tk in doc)
 
     def _compile_sentence(
         self,
         doc: SpacyDoc,
-        remove_tokens: List[int] = None,  # indexes to remove
-        add_tokens: Dict[int, Token] = None  # idx, string to add
+        remove_tokens: Optional[List[int]] = None,
+        add_tokens: Optional[Dict[int, Token]] = None
     ) -> str:
+        """Process and de-tokenize a spaCy document back into a string.
+
+        Args:
+            doc (:obj:`SpacyDoc`):
+                The spaCy document.
+            remove_tokens (:obj:`Optional[List[int]]`):
+                The indexes of the tokens to remove from the document, if any.
+            add_tokens (:obj:`Optional[Dict[int, Token]]`):
+                The tokens to add to the document, if any. These are specified
+                as a dictionary whose keys are the indexes in which to insert
+                the new tokens, which are the respective values.
+
+        Returns:
+            :obj:`str`: The resulting, de-tokenized string including the
+            removal/addition of tokens, if any.
+        """
         if remove_tokens is None:
             remove_tokens = []
         if add_tokens is None:
@@ -443,11 +708,31 @@ class Negator:
             )
 
     def _capitalize_first_letter(self, string_: str) -> str:
+        """Uppercase the first letter of a string.
+
+        The capitalization of the rest of the string remains unchanged.
+
+        Args:
+            string_ (:obj:`str`):
+                The string whose first letter to uppercase.
+
+        Returns:
+            :obj:`str`: The string with its first letter uppercased.
+        """
         if not string_:
             return ""
         return f"{string_[0].upper()}{string_[1:]}"
 
     def _remove_extra_whitespaces(self, string_: str) -> str:
+        """Remove any duplicated whitespaces in a string.
+
+        Args:
+            string_ (:obj:`str`):
+                The string in which to remove any extra whitespaces.
+
+        Returns:
+            :obj:`str`: The string with one whitespace at most between words.
+        """
         if not string_:
             return ""
         return " ".join(string_.split())
@@ -468,8 +753,8 @@ class Negator:
 
                 .. note::
 
-                   When set to :obj:`True` the model <en_core_web_trf
-                   `https://spacy.io/models/en#en_core_web_trf`>__ is used.
+                   When set to :obj:`True` the model `en_core_web_trf
+                   <https://spacy.io/models/en#en_core_web_trf>`__ is used.
             **kwargs:
                 Additional arguments passed to :func:`spacy.load`.
 
@@ -478,7 +763,7 @@ class Negator:
             use.
         """
         # See https://stackoverflow.com/a/25061573/14683209
-        # We don't want the messages coming from pip to pollute the stdout.
+        # We don't want the messages coming from pip "polluting" stdout.
         @contextmanager
         def suppress_stdout():
             with open(os.devnull, "w", encoding="utf-8") as devnull:
@@ -505,7 +790,7 @@ class Negator:
 
         Args:
             fail (:obj:`Optional[bool]`):
-                Whether to raise an exception with unsupported sentences of not.
+                Whether to raise an exception with unsupported sentences or not.
         Raises:
             :obj:`RuntimeError`: If :arg:`fail_on_unsupported` is set to
             :obj:`True`.
@@ -513,12 +798,21 @@ class Negator:
         if fail is None:
             fail = self.fail_on_unsupported
         if fail:
-            raise RuntimeError("Sentence not supported.")
+            raise RuntimeError("sentence not supported")
         else:
             self.logger.warning("Sentence not supported. Output might be "
                                 "arbitrary.")
 
-    def _initialize_aux_negations(self):
+    def _initialize_aux_negations(self) -> None:
+        """Define the auxiliary verbs and their negated form.
+
+        The negations are defined as a dictionary with two keys: :obj:`True` for
+        the contracted auxiliaries, and :obj:`False` for its non-contracted
+        counterparts.
+
+        These keys contain in turn another dictionary whose keys are the
+        non-negated forms of the auxiliaries, and its values the negated ones.
+        """
         self._aux_negations = {
             True: {
                 "'m": "'m not",
@@ -534,7 +828,7 @@ class Negator:
                 "did": "didn't",
                 "'ve": " haven't",
                 "have": "haven't",
-                "'s_": " hasn't",  # underscore to distinguish from verb to be.
+                "'s_": " hasn't",  # underscore to distinguish from verb to be
                 "has": "hasn't",
                 "'d": " hadn't",
                 "had": "hadn't",
@@ -563,7 +857,7 @@ class Negator:
                 "did": "did not",
                 "'ve": " have not",
                 "have": "have not",
-                "'s_": " has not",  # underscore to distinguish from verb to be.
+                "'s_": " has not",  # underscore to distinguish from verb to be
                 "has": "has not",
                 "'d": " had not",
                 "had": "had not",
