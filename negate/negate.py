@@ -7,10 +7,12 @@ import sys
 import spacy
 from contextlib import contextmanager
 from typing import Dict, List, Optional, Tuple, Union
+
 from lemminflect import getInflection, getLemma
 from spacy.symbols import AUX, neg, VERB
 from spacy.tokens import Doc as SpacyDoc
 from spacy.tokens import Token as SpacyToken
+
 from .tokens import Token
 
 
@@ -75,7 +77,7 @@ class Negator:
         # Initialize AUX negation dictionary.
         self._initialize_aux_negations()
         # Store whether tokens have a whitespace after them. This is used later
-        # on for detokenization.
+        # on for de-tokenization.
         SpacyToken.set_extension("has_space_after", default=True, force=True)
 
     def negate_sentence(
@@ -129,6 +131,7 @@ class Negator:
             negation = self._get_negated_child(root, min_index=negation.i+1)
         if negation:
             aux_child = self._get_aux_child(root)
+            remove, add = self._handle_ca_wo(root, aux_child, negation=negation)
             # General verbs -> Remove negation and conjugate verb.
             # If there is an AUX child, we need to "unnegate" the AUX instead.
             if (not self._is_aux(root) and root.tag_ != "VBN"
@@ -139,36 +142,8 @@ class Negator:
                     text=self.conjugate_verb(root.text, root.tag_),
                     has_space_after=negation._.has_space_after
                 )}
-            # Special case AUX "won't" -> Remove negation and replace
-            # "wo" -> "will".
-            elif root.text.lower() == "wo":
-                remove = [root.i, negation.i]
-                add = {root.i: Token(
-                    text=" will",
-                    has_space_after=negation._.has_space_after
-                )}
-            elif aux_child and aux_child.text.lower() == "wo":
-                remove = [aux_child.i, negation.i]
-                add = {aux_child.i: Token(
-                    text=" will",
-                    has_space_after=negation._.has_space_after
-                )}
-            # Special case AUX "can't" -> Remove negation and replace
-            # "ca" -> "can".
-            elif root.text.lower() == "ca":
-                remove = [root.i, negation.i]
-                add = {root.i: Token(
-                    text=" can",
-                    has_space_after=negation._.has_space_after
-                )}
-            elif aux_child and aux_child.text.lower() == "ca":
-                remove = [aux_child.i, negation.i]
-                add = {aux_child.i: Token(
-                    text=" can",
-                    has_space_after=negation._.has_space_after
-                )}
             # Any other AUX or verb in past participle -> Remove negation.
-            else:
+            elif not remove and not add:
                 remove = [root.i, negation.i]
                 # Correctly handle space in e.g., "He hasn't been doing great."
                 if negation.i < root.i and negation.i > 0:
@@ -176,7 +151,7 @@ class Negator:
                 # Correctly handle space in e.g., "I'm not doing great." vs.
                 # "I am not doing great."
                 space_before = " " * int(root.i > 0
-                                        and doc[root.i-1]._.has_space_after)
+                                         and doc[root.i-1]._.has_space_after)
                 # Negation can come before ("She will not ever go.") or after
                 # the root ("She will not."). Space after is different in each
                 # case.
@@ -347,32 +322,17 @@ class Negator:
         negation = self._get_negated_child(aux)
         # If AUX negated -> Remove negation.
         if negation:
-            # Special case AUX "won't" -> Remove negation and replace
-            # "wo" -> "will".
-            if aux.text.lower() == "wo":
-                replace_aux = Token(
-                    text=" will",
-                    has_space_after=negation._.has_space_after
-                )
-            # Special case AUX "can't" -> Remove negation and replace
-            # "ca" -> "can".
-            elif aux.text.lower() == "ca":
-                replace_aux = Token(
-                    text=" can",
-                    has_space_after=negation._.has_space_after
-                )
-            # Nothing to do.
-            else:
-                replace_aux = Token(
+            remove, add = self._handle_ca_wo(aux, negation=negation)
+            if not remove and not add:
+                remove = [aux.i, negation.i]
+                add = Token(
                     text=aux.text,
                     has_space_after=negation._.has_space_after
                 )
             return self._compile_sentence(
                 doc,
-                remove_tokens=[aux.i, negation.i],
-                add_tokens={
-                    aux.i: replace_aux
-                }
+                remove_tokens=remove,
+                add_tokens={aux.i: add}
             )
 
         # If AUX not negated -> Replace AUX with its negated.
@@ -407,6 +367,71 @@ class Negator:
             remove_tokens=remove,
             add_tokens=add
         )
+
+    def _handle_ca_wo(
+        self,
+        *aux_tokens: Optional[SpacyToken],
+        negation: SpacyToken
+    ) -> Tuple[Optional[List[int]], Optional[Dict[int, Token]]]:
+        """Handle special cases ``"won't"`` and ``"can't"``.
+
+        These auxiliary verbs are split into ``"wo"`` (AUX) and ``"n't"`` (neg),
+        and ``"ca"`` (AUX) / ``"n't"`` (neg), respectively. If we simply removed
+        the negation as with other negated auxiliaries (e.g., ``"cannot"`` →
+        ``"can"`` (AUX) / ``"not"`` (neg), we remove ``"not"`` and keep
+        ``"can"``), we would end up with ``"wo"`` and ``"ca"``, which are not
+        correct words. Therefore, we need to take extra steps to replace these
+        words by ``"will"`` and ``"can"``, respectively.
+
+        Args:
+            *aux_tokens (:obj:`Optional[SpacyToken]`):
+                The tokens representing auxiliary verbs to consider. Of all the
+                tokens passed, only the first one that actually corresponds to
+                this special case will be processed.
+
+                :obj:`None` values can be passed and will be skipped.
+            negation (:obj:`SpacyToken`):
+                The negation particle that accompanies the auxiliary verbs in
+                :param:`*aux_tokens`.
+
+        Returns:
+            :obj:`Tuple[Optional[List[int]], Optional[Dict[int, Token]]]`: A
+            tuple containing the following values:
+
+               * A list with the indexes of the tokens to be removed. These will
+                 be either ``"wo"`` or ``"ca"``, and the negation particle
+                 ``"n't"``.
+               * A dictionary containing the tokens to be added. These will
+                 be either replacing ``"wo"`` → ``"will"``, or ``"ca"`` →
+                 ``"can"``.
+            If the auxiliary tokens passed do not correspond with this special
+            case, ``(None, None)`` is returned.
+        """
+        remove = []
+        add = {}
+        for aux in aux_tokens:
+            if not aux:
+                continue
+            # Case AUX "won't" -> Remove negation and replace
+            # "wo" -> "will".
+            if aux.text.lower() == "wo":
+                remove.append(aux.i)
+                add.update({aux.i: Token(
+                    text=" will",
+                    has_space_after=negation._.has_space_after
+                )})
+            # Case AUX "can't" -> Remove negation and replace
+            # "ca" -> "can".
+            elif aux.text.lower() == "ca":
+                remove.append(aux.i)
+                add.update({aux.i: Token(
+                    text=" can",
+                    has_space_after=negation._.has_space_after
+                )})
+            if remove and add:
+                remove.append(negation.i)
+                return remove, add
+        return None, None
 
     def _parse(self, string_: str) -> SpacyDoc:
         """Parse a string.
