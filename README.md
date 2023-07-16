@@ -1,17 +1,14 @@
-<p align="center"><img width="666" src="https://user-images.githubusercontent.com/22967053/208313993-b873be19-8648-4edd-b4ee-e5283c19ad8f.png" alt="Negate: A Python module to negate sentences."></p>
+<p align="center"><img width="600" src="https://github.com/dmlls/negate/assets/22967053/78d619df-2a25-4f42-8d1c-bf0f14c8623f" alt="Negate: A Python module to negate sentences."></p>
 <p align="center" display="inline-block">
   <a href="https://pypi.org/project/negate/">
     <img src="https://img.shields.io/pypi/v/negate">
-  </a>
-  <a href="https://pypi.org/project/negate/">
-    <img src="https://img.shields.io/badge/release-beta-green">
   </a>
   <a href="https://deepsource.io/gh/dmlls/negate/?ref=repository-badge" target="_blank">
       <img alt="Active Issues" title="DeepSource" src="https://deepsource.io/gh/dmlls/negate.svg/?label=active+issues&token=D9QCfE028iloctbSdOhywtZy"/>
   </a>
 </p>
 
-<br>
+<br><br>
 
 ## Introduction
 
