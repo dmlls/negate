@@ -1,4 +1,5 @@
-<p align="center"><img width="600" src="https://github.com/dmlls/negate/assets/22967053/78d619df-2a25-4f42-8d1c-bf0f14c8623f" alt="Negate: A Python module to negate sentences."></p>
+<p align="center"><img width="400" src="https://github.com/dmlls/negate/assets/22967053/d0a2886e-8a17-4006-bf23-d36dd880cffa" alt="Negate Logo"></p>
+<h2 align="center">Negate: A Python module to negate sentences</h2>
 <p align="center" display="inline-block">
   <a href="https://pypi.org/project/negate/">
     <img src="https://img.shields.io/pypi/v/negate">
