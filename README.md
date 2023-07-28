@@ -219,3 +219,13 @@ to exist:
   beyond adding or removing a negation particle. In some cases, verbs have to be
   properly conjugated (e.g., when negating verbs in third-person or in past
   simple). LemmInflect provides us with this functionality.
+
+<br>
+
+## Academic Publications
+
+Negate has been used in the following academic papers:
+
+- Anschütz, M., Lozano, D. M., &amp; Groh, G. (2023, July 26). *This is not correct!
+  Negation-aware Evaluation of Language Generation Systems.* arXiv.org.
+  https://arxiv.org/abs/2307.13989 
