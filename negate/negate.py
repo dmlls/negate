@@ -9,7 +9,7 @@ from contextlib import contextmanager
 from typing import Dict, List, Optional, Tuple, Union
 
 from lemminflect import getInflection, getLemma
-from spacy.symbols import AUX, neg, VERB
+from spacy.symbols import AUX, NOUN, PRON, VERB, neg, nsubj, nsubjpass
 from spacy.tokens import Doc as SpacyDoc
 from spacy.tokens import Token as SpacyToken
 
@@ -111,16 +111,15 @@ class Negator:
             prefer_contractions = True
 
         doc = self._parse(sentence)
-        root = self._get_entry_point(doc)
-
+        contains_inversion = self._contains_inversion(doc)
+        root = self._get_entry_point(doc, contains_inversion)
         if not root or not self._is_sentence_supported(doc):
             self._handle_unsupported()
             if not root:  # Don't even bother trying :)
                 return sentence
-
         # Any negations we can remove? (e.g.: "I don't know.", "They won't
         # complain.", "He has not done it.", etc.).
-        negation = self._get_negated_child(root)
+        negation = self._get_first_negation_particle(doc)
         # Handle sentences such as "Not to mention that they weren't there."
         # We want to prevent taking the first "Not" as the negation, since this
         # complicates things.
@@ -144,32 +143,37 @@ class Negator:
                 )}
             # Any other AUX or verb in past participle -> Remove negation.
             elif not remove and not add:
-                remove = [root.i, negation.i]
-                # Correctly handle space in e.g., "He hasn't been doing great."
-                if negation.i < root.i and negation.i > 0:
-                    doc[negation.i-1]._.has_space_after = negation._.has_space_after
-                # Correctly handle space in e.g., "I'm not doing great." vs.
-                # "I am not doing great."
-                space_before = " " * int(root.i > 0
-                                         and doc[root.i-1]._.has_space_after)
-                # Negation can come before ("She will not ever go.") or after
-                # the root ("She will not."). Space after is different in each
-                # case.
-                space_after = (negation._.has_space_after if negation.i > root.i
-                               else root._.has_space_after)
-                add = {root.i: Token(
-                    text=f"{space_before}{root.text}",
-                    has_space_after=space_after
-                )}
-                # Special case "do" -> Also remove "do" and conjugate verb.
-                # E.g.: "He doesn't like it." -> "He likes it".
-                if aux_child and self._is_verb_to_do(aux_child):
-                    remove.append(aux_child.i)
-                    add[root.i] = Token(
-                        text=f"{space_before}"
-                             f"{self.conjugate_verb(root.text.lower(), aux_child.tag_)}",
-                        has_space_after=root._.has_space_after
-                    )
+                if contains_inversion:  # E.g.: "Does she not know about it?"
+                    remove = [negation.i]
+                    add = {negation.i: Token(text="")}  # Add whitespace.
+                else:
+                    remove = [root.i, negation.i]
+                    # Correctly handle space in e.g., "He hasn't been doing great."
+                    if negation.i < root.i and negation.i > 0:
+                        doc[negation.i-1]._.has_space_after = negation._.has_space_after
+                    # Correctly handle space in e.g., "I'm not doing great." vs.
+                    # "I am not doing great."
+                    space_before = " " * int(root.i > 0
+                                            and doc[root.i-1]._.has_space_after)
+                    # Negation can come before ("She will not ever go.") or after
+                    # the root ("She will not."). Space after is different in each
+                    # case.
+                    space_after = (negation._.has_space_after
+                                   if negation.i > root.i
+                                   else root._.has_space_after)
+                    add = {root.i: Token(
+                        text=f"{space_before}{root.text}",
+                        has_space_after=space_after
+                    )}
+                    # Special case "do" -> Also remove "do" and conjugate verb.
+                    # E.g.: "He doesn't like it." -> "He likes it".
+                    if aux_child and self._is_verb_to_do(aux_child):
+                        remove.append(aux_child.i)
+                        add[root.i] = Token(
+                            text=f"{space_before}"
+                                 f"{self.conjugate_verb(root.text.lower(), aux_child.tag_)}",
+                            has_space_after=root._.has_space_after
+                        )
             return self._compile_sentence(
                 doc,
                 remove_tokens=remove,
@@ -187,6 +191,7 @@ class Negator:
                 return self._negate_aux_in_doc(
                     aux=root if not aux_child else aux_child,
                     doc=doc,
+                    contains_inversion=contains_inversion,
                     prefer_contractions=prefer_contractions,
                     fail_on_unsupported=True
                 )
@@ -222,7 +227,6 @@ class Negator:
             :obj:`str`: The conjugated verb. If the verb could not be
             conjugated, it is returned unchanged.
         """
-        self.logger.warning(tag)
         conjugated_verb: Tuple[str] = getInflection(verb, tag)
         return conjugated_verb[0] if conjugated_verb else verb
 
@@ -276,18 +280,17 @@ class Negator:
             fail_on_unsupported = self.fail_on_unsupported
 
         negated_aux = self._aux_negations[prefer_contractions].get(
-            auxiliary_verb
+            auxiliary_verb.lower()
         )
         if negated_aux is None:
             self._handle_unsupported(fail_on_unsupported)
         return negated_aux
 
-
-    # TODO: Check for duplicate code.
     def _negate_aux_in_doc(
         self,
         aux: Union[Token, SpacyToken],
         doc: SpacyDoc,
+        contains_inversion: bool,
         prefer_contractions: Optional[bool] = None,
         fail_on_unsupported: Optional[bool] = None
     ) -> str:
@@ -295,7 +298,7 @@ class Negator:
 
         .. note::
 
-           This method, differently from :meth:`Negator.SpacyDoc`, is
+           This method, differently from :meth:`Negator.negate_aux`, is
            bidirectional. That means that the passed auxiliary can be in its
            affirmative or negative form.
 
@@ -304,6 +307,8 @@ class Negator:
                 The auxiliary verb to negate
             doc (:obj:`SpacyDoc`):
                 The spaCy doc containing the auxiliary.
+            contains_inversion (:obj:`bool`):
+                Whether the sentence contains an inversion.
             prefer_contractions (:obj:`Optional[bool]`, defaults to :obj:`True`):
                 Whether to get the contracted form of the auxiliary (e.g.,
                 ``"isn't"``, ``"haven't"``, ``"wouldn't"``, etc.).
@@ -344,24 +349,40 @@ class Negator:
                     or any(child.tag_ == "VBN" for child in parent.children)):
                 # "'s" is "to have"
                 aux_text = f"{aux.text}_"
-        remove = [aux.i]
-        add = {
-            aux.i: Token(
-                text=self.negate_aux(
-                    aux_text,
-                    prefer_contractions,
-                    fail_on_unsupported=fail_on_unsupported
-                ),
-                has_space_after=aux._.has_space_after
-            )
-        }
-        # Handle e.g., "should've" -> "shouldn't have"
-        if aux.i+1 < len(doc) and doc[aux.i+1].text.lower() == "'ve":
-            remove.append(aux.i+1)
-            add[aux.i+1] = Token(
-                text=" have",
-                has_space_after=doc[aux.i+1]._.has_space_after
-            )
+        remove = []
+        # Non-contracted inversion or "am", which does not have a contracted
+        # version.
+        if (contains_inversion and (aux.text.lower() == "am"
+                                    or not prefer_contractions)):
+            # Find closest pronoun to the right of the aux and add the negation
+            # particle after it.
+            pronoun = None
+            for tk in doc[aux.i+1:]:
+                if self._is_pronoun(tk):
+                    pronoun = tk
+                    break
+            if pronoun is None:
+                self._handle_unsupported(fail=fail_on_unsupported)
+            add = {pronoun.i+1: Token(text="not")}
+        else:  # No inversion or contracted inversion.
+            remove.append(aux.i)
+            add = {
+                aux.i: Token(
+                    text=self.negate_aux(
+                        aux_text,
+                        prefer_contractions,
+                        fail_on_unsupported=fail_on_unsupported
+                    ),
+                    has_space_after=aux._.has_space_after
+                )
+            }
+            # Handle e.g., "should've" -> "shouldn't have"
+            if aux.i+1 < len(doc) and doc[aux.i+1].text.lower() == "'ve":
+                remove.append(aux.i+1)
+                add[aux.i+1] = Token(
+                    text=" have",
+                    has_space_after=doc[aux.i+1]._.has_space_after
+                )
         return self._compile_sentence(
             doc,
             remove_tokens=remove,
@@ -460,32 +481,43 @@ class Negator:
             i += len(tk) + int(has_space_after)
         return doc
 
-    def _get_entry_point(self, doc: SpacyDoc) -> Optional[SpacyToken]:
+    def _get_entry_point(
+        self,
+        doc: SpacyDoc,
+        contains_inversion: bool
+    ) -> Optional[SpacyToken]:
         """Choose a suitable verb to attempt negating first, if any.
 
         Args:
             doc (:obj:`SpacyDoc`):
                 The spaCy document in which to find the entry point.
+            contains_inversion (:obj:`bool`):
+                Whether the sentence contains an inversion or not.
 
         Returns:
             :obj:`Optional[SpacyToken]`: The chosen entry point (verb), or
             :obj:`None` if the sentence has no root, or contains no verbs.
         """
+        if contains_inversion:
+            entry_point = [tk for tk in doc
+                           if self._is_aux(tk) or self._is_verb(tk)]
+            if entry_point:
+                return entry_point[0]
         root = self._get_root(doc)
         if root is None:  # nothing we can do
             return None
-        # If the root token is not an AUX or a VERB, look for an AUX or VERB in
-        # its children.
+        # If the root token is not an AUX or a VERB, look for an AUX or
+        # VERB in its children.
         if not (self._is_aux(root) or self._is_verb(root)):
             entry_point = None
             if root.children:
                 entry_point = [tk for tk in root.children
-                               if self._is_aux(tk) or self._is_verb(tk)]
-            # No AUX or VERB found in the root children -> Take the first AUX
-            # or VERB in the sentence, if any.
+                                if self._is_aux(tk) or self._is_verb(tk)]
+            # No AUX or VERB found in the root children -> Take the first
+            # AUX or VERB in the sentence, if any.
             if not entry_point:
                 entry_point = [tk for tk in doc
-                               if self._is_aux(tk) or self._is_verb(tk)]
+                                if self._is_aux(tk) or self._is_verb(tk)]
             return entry_point[0] if entry_point else None
         return root
 
@@ -502,6 +534,22 @@ class Negator:
         """
         root = [tk for tk in doc if tk.dep_ == "ROOT"]
         return root[0] if root else None
+
+    def _get_first_negation_particle(
+        self,
+        doc: SpacyDoc
+    ) -> Optional[SpacyToken]:
+        """Get the first negation particle in a document.
+
+        Args:
+            doc (:obj:`SpacyDoc`):
+                The spaCy document containing the token.
+        Returns:
+            :obj:`Optional[SpacyToken]`: The first negation particle in the
+            sentence, or :obj:`None` if no such particle exists.
+        """
+        negation = [tk for tk in doc if tk.dep == neg]
+        return negation[0] if negation else None
 
     def _get_negated_child(
         self,
@@ -621,6 +669,36 @@ class Negator:
             return False
         return token.pos == AUX
 
+    def _is_pronoun(self, token: SpacyToken) -> bool:
+        """Determine whether a token is a pronoun.
+
+        Args:
+            token (:obj:`SpacyToken`):
+                The spaCy token to determine whether it is a pronoun.
+
+        Returns:
+            :obj:`bool`: :obj:`True` if the token is a pronoun,
+            otherwise :obj:`False`.
+        """
+        if not token:
+            return False
+        return token.pos == PRON
+
+    def _is_noun(self, token: SpacyToken) -> bool:
+        """Determine whether a token is a noun.
+
+        Args:
+            token (:obj:`SpacyToken`):
+                The spaCy token to determine whether it is a noun.
+
+        Returns:
+            :obj:`bool`: :obj:`True` if the token is a noun,
+            otherwise :obj:`False`.
+        """
+        if not token:
+            return False
+        return token.pos == NOUN
+
     def _is_verb(self, token: SpacyToken) -> bool:
         """Determine whether a token is a non-auxiliary verb.
 
@@ -690,6 +768,36 @@ class Negator:
             otherwise :obj:`False`.
         """
         return any(self._is_aux(tk) or self._is_verb(tk) for tk in doc)
+
+    def _contains_inversion(self, doc: SpacyDoc) -> bool:
+        """Determine whether a sentence contains an inversion.
+
+        `What is an inversion?
+        <https://dictionary.cambridge.org/es-LA/grammar/british-grammar/inversion>`__.
+
+        Args:
+            doc (:obj:`SpacyDoc`):
+                The spaCy document in which to look for inversions.
+
+        Returns:
+            :obj:`bool`: :obj:`True` if the sentence contains an inversion,
+            otherwise :obj:`False`.
+        """
+        aux = None
+        pronoun = None
+        for tk in doc:
+            if self._is_aux(tk):
+                aux = tk
+            # Only attend to pronouns that don't refer to a noun (i.e., those
+            # which could act as subjects).
+            if (self._is_pronoun(tk)
+                and not self._is_noun(self._get_parent(tk, doc))):
+                pronoun = tk
+            if aux and pronoun:
+                break
+        else:
+            return False
+        return aux.i < pronoun.i
 
     def _compile_sentence(
         self,
