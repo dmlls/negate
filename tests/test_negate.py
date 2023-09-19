@@ -5,6 +5,7 @@ from negate import Negator
 from .data import (aux_root_affirmative, aux_root_negative,
                    aux_root_children_affirmative, aux_root_children_negative,
                    general_verbs_affirmative, general_verbs_negative,
+                   inversions_affirmative, inversions_negative,
                    misc, failing)
 
 
@@ -83,6 +84,34 @@ def test_general_verbs_affirmative(
     general_verbs_negative
 )
 def test_general_verbs_negative(
+    negator: Negator,  # pylint: disable=redefined-outer-name
+    input_sentence: str,
+    output_sentence: str,
+    prefer_contractions: bool
+):
+    assert negator.negate_sentence(
+        input_sentence, prefer_contractions) == output_sentence
+
+
+@pytest.mark.parametrize(
+    "input_sentence, output_sentence, prefer_contractions",
+    inversions_affirmative
+)
+def test_inversions_affirmative(
+    negator: Negator,  # pylint: disable=redefined-outer-name
+    input_sentence: str,
+    output_sentence: str,
+    prefer_contractions: bool
+):
+    assert negator.negate_sentence(
+        input_sentence, prefer_contractions) == output_sentence
+
+
+@pytest.mark.parametrize(
+    "input_sentence, output_sentence, prefer_contractions",
+    inversions_negative
+)
+def test_inversions_negative(
     negator: Negator,  # pylint: disable=redefined-outer-name
     input_sentence: str,
     output_sentence: str,

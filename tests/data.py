@@ -25,6 +25,8 @@ aux_root_affirmative = [
     ("I'll be excited.", "I will not be excited.", False),
     ("I will be excited.", "I won't be excited.", True),
     ("I will be excited.", "I will not be excited.", False),
+    ("She's determined.", "She isn't determined.", True),
+    ("She's determined.", "She is not determined.", False),
     ("She's excited.", "She isn't excited.", True),
     ("She's excited.", "She is not excited.", False),
     ("She is excited.", "She isn't excited.", True),
@@ -244,13 +246,81 @@ general_verbs_negative = [
     ("She does not think it's true.", "She thinks it's true.", False),
 ]
 
+# Inversions - Affirmative
+inversions_affirmative = [
+    ("Am I good enough for you?", "Am I not good enough for you?", True),
+    ("Am I good enough for you?", "Am I not good enough for you?", False),
+    ("Are you going to be there?", "Aren't you going to be there?", True),
+    ("Are you going to be there?", "Are you not going to be there?", False),
+    ("Was I supposed to know?", "Wasn't I supposed to know?", True),
+    ("Was I supposed to know?", "Was I not supposed to know?", False),
+    ("Were they at the conference?", "Weren't they at the conference?", True),
+    ("Were they at the conference?", "Were they not at the conference?", False),
+    ("Am I good enough for you?", "Am I not good enough for you?", False),
+    ("Are you going to be there?", "Aren't you going to be there?", True),
+    ("Are you going to be there?", "Are you not going to be there?", False),
+    ("Have I been here before?", "Have I not been here before?", False),
+    ("Have you heard the news?", "Haven't you heard the news?", True),
+    ("Have you heard the news?", "Have you not heard the news?", False),
+    ("Has he heard the news?", "Hasn't he heard the news?", True),
+    ("Has he heard the news?", "Has he not heard the news?", False),
+    ("Would you do it?", "Wouldn't you do it?", True),
+    ("Should they go?", "Should they not go?", False),
+    ("Do you know about it?", "Don't you know about it?", True),
+    ("Do you know about it?", "Do you not know about it?", False),
+    ("Does she know about it?", "Doesn't she know about it?", True),
+    ("Does she know about it?", "Does she not know about it?", False),
+    ("Will it work?", "Will it not work?", False),
+    ("Will it work?", "Won't it work?", True),
+    ("Can it work?", "Can it not work?", False),
+    ("Can it work?", "Can't it work?", True),
+    ("Could it work?", "Could it not work?", False),
+    ("Could it work?", "Couldn't it work?", True),
+    ("Are there many ways it can be done?", "Aren't there many ways it can be done?", True),
+    ("Are there many ways it can be done?", "Are there not many ways it can be done?", False),
+    ("Little did I know their opinion was so biased.", "Little didn't I know their opinion was so biased.", True),
+    ("Little did I know their opinion was so biased.", "Little did I not know their opinion was so biased.", False),
+]
+
+# Inversions - Negative
+inversions_negative = [
+    # Negated AUX.
+    ("Am I not good enough for you?", "Am I good enough for you?", True),
+    ("Aren't you going to be there?", "Are you going to be there?", True),
+    ("Are you not going to be there?", "Are you going to be there?", False),
+    ("Wasn't I supposed to know?", "Was I supposed to know?", True),
+    ("Was I not supposed to know?", "Was I supposed to know?", False),
+    ("Weren't they at the conference?", "Were they at the conference?", True),
+    ("Were they not at the conference?", "Were they at the conference?", False),
+    ("Have I not been here before?", "Have I been here before?", False),
+    ("Haven't you heard the news?", "Have you heard the news?", True),
+    ("Hasn't he heard the news?", "Has he heard the news?", True),
+    ("Has he not heard the news?", "Has he heard the news?", True),
+    ("Wouldn't you do it?", "Would you do it?", True),
+    ("Should they not go?", "Should they go?", False),
+    ("Don't you know about it?", "Do you know about it?", True),
+    ("Do you not know about it?", "Do you know about it?", False),
+    ("Doesn't she know about it?", "Does she know about it?", False),
+    ("Does she not know about it?", "Does she know about it?", False),
+    ("Will it not work?", "Will it work?", False),
+    ("Won't it work?", "Will it work?", True),
+    ("Can it not work?", "Can it work?", False),
+    ("Can't it work?", "Can it work?", True),
+    ("Could it not work?", "Could it work?", False),
+    ("Couldn't it work?", "Could it work?", True),
+    ("Aren't there many ways it can be done?", "Are there many ways it can be done?", True),
+    ("Are there not many ways it can be done?", "Are there many ways it can be done?", False),
+    ("Little did I not know their opinion was so biased.", "Little did I know their opinion was so biased.", True),
+    ("Little didn't I know their opinion was so biased.", "Little did I know their opinion was so biased.", False),
+]
+
 # Miscellaneous
 misc = [
     ("A small Python module that doesn't negate sentences.", "A small Python module that negates sentences.", True),
     ("You should always be careful.", "You shouldn't always be careful.", True),
     ("You must be careful.", "You must not be careful.", False),
     ("I would have done it differently.", "I wouldn't have done it differently.", True),
-    ("They are thinking too much and things might not go right.", "They aren't thinking too much and things might not go right.", True),
+    ("They are thinking too much and things might not go right.", "They are thinking too much and things might go right.", True),
     ("They aren't going too fast and they might not have time.", "They are going too fast and they might not have time.", True),
     ("I am tired.", "I am not tired.", False),
     ("This was incorrectly assumed.", "This was not incorrectly assumed.", False),
@@ -298,7 +368,8 @@ misc = [
     ("He's rather shy.", "He isn't rather shy.", True),
     ("He's Paul.", "He is not Paul.", False),
     ("I will never go there.", "I will go there.", False),
-    ("I always go there.", "I always don't go there.", True)  # not very natural
+    ("I always go there.", "I always don't go there.", True),  # not very natural
+    ("In general, companies can say great things about their product.", "In general, companies cannot say great things about their product.", False),
 ]
 
 # Sentences that are currently failing.
@@ -308,7 +379,6 @@ failing = [
     ("I do.", "I do not.", False),  # "do" classified as VERB instead of AUX.
     ("She does.", "She doesn't.", True),  # "do" classified as VERB instead of AUX.
     ("She does.", "She does not.", False),  # "do" classified as VERB instead of AUX.
-    ("She's determined.", "She is not determined.", False),  # "determined" classified as VERB instead of ADJ.
     # Connectors.
     ("It also prohibits or restricts the use of certain mechanisms.", "It also doesn't prohibit or restrict the use of certain mechanisms.", True),
     # Boolean logic, e.g.: "prohibits AND restricts" -> "doesn't prohibit OR restrict"
