@@ -22,6 +22,12 @@ Don't forget to also test the Transformers version with:
 ```console
 pytest --transformers
 ```
+
+Remember that to use Transformers, the additional dependencies have to be installed first with:
+```shell
+pip install -U "negator[transformers]"
+```
+
 <br>
 
 Currently, there are several non-passing sentences. These will be marked with

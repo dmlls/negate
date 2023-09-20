@@ -52,18 +52,20 @@ By default, negate uses the spaCy model
 and dependency parsing. However, in cases where accuracy is preferred over
 efficiency, negate also allows to use a Transformer model, namely the spaCy
 model [`en_core_web_trf`](https://spacy.io/models/en#en_core_web_trf). To use
-this model, simply initialize the Negator passing `use_transformers=True`:
+this model, first install the additional dependencies and then initialize the
+Negator passing `use_transformers=True`:
 
-```Python
-# Or use a Transformer model (en_core_web_trf):
-negator = Negator(use_transformers=True)
-
-# Use a Transformer model with GPU (if available):
-negator = Negator(use_transformers=True, use_gpu=True)
+```shell
+pip install -U "negator[transformers]"
 ```
 
-If the models are not locally installed, negate will download them and install
-them first. This only needs to occur once.
+```Python
+# Use a Transformer model (en_core_web_trf):
+negator = Negator(use_transformers=True)
+
+# GPU can also be used (if available):
+negator = Negator(use_transformers=True, use_gpu=True)
+```
 
 <br>
 

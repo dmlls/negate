@@ -62,7 +62,7 @@ class Negator:
 
         # Set up logger.
         logging.basicConfig(
-            format="%(name)s - %(levelname)s: %(message)s",
+            format="%(levelname)s: %(message)s",
             level=log_level
         )
         self.logger = logging.getLogger(__class__.__name__)
@@ -877,8 +877,6 @@ class Negator:
     ) -> spacy.language.Language:
         """Initialize the spaCy model to be used by the Negator.
 
-        Heavily inspired by `https://github.com/BramVanroy/spacy_download`__.
-
         Args:
             use_transformers (:obj:`Optional[bool]`, defaults to :obj:`False`):
                 Whether to use a Transformer model for POS tagging and
@@ -895,28 +893,15 @@ class Negator:
             :obj:`spacy.language.Language`: The loaded spaCy model, ready to
             use.
         """
-        # See https://stackoverflow.com/a/25061573/14683209
-        # We don't want the messages coming from pip "polluting" stdout.
-        @contextmanager
-        def suppress_stdout():
-            with open(os.devnull, "w", encoding="utf-8") as devnull:
-                old_stdout = sys.stdout
-                sys.stdout = devnull
-                try:
-                    yield
-                finally:
-                    sys.stdout = old_stdout
-
         model_name = "en_core_web_trf" if use_transformers else "en_core_web_md"
         try:  # Model installed?
             model_module = importlib.import_module(model_name)
+            return model_module.load(**kwargs)
         except ModuleNotFoundError:  # Download and install model.
-            self.logger.info("Downloading model. This only needs to happen "
-                             "once. Please, be patient...")
-            with suppress_stdout():
-                spacy.cli.download(model_name, False, False, "-q")
-            model_module = importlib.import_module(model_name)
-        return model_module.load(**kwargs)
+            self.logger.error("Dependencies for Transformers missing. "
+                              "Install them with:\n\n"
+                              '  pip install "negate[transformers]"\n')
+            sys.exit()
 
     def _handle_unsupported(self, fail: Optional[bool] = None):
         """Handle behavior upon unsupported sentences.
