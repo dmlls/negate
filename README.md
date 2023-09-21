@@ -159,11 +159,11 @@ welcome!
   "yet", when negating a negation, it makes sense to remove it or replace it
   with "already", e.g., "I haven't been to Paris yet." → "I have been to Paris."
 
-- [ ] **[Inversions](https://dictionary.cambridge.org/es-LA/grammar/british-grammar/inversion)
+- [x] ~**[Inversions](https://dictionary.cambridge.org/es-LA/grammar/british-grammar/inversion)
   are not supported.** This mainly affects to questions, e.g., "*Did* you go to
   the concert?" vs. "You *did* go to the concert." Notice how in the first
   example (interrogative) we have AUX + PRON + VERB and in the second
-  (affirmative) PRON + AUX + VERB.
+  (affirmative) PRON + AUX + VERB.~ **Update:** Inversions are now supported!
 
 - [ ] **Non-verbal negations are not supported.** This type of negations, such
   as "A bottle with no cap." will produce the warning: `Negator - WARNING:
