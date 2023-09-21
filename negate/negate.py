@@ -2,14 +2,12 @@
 
 import logging
 import importlib
-import os
 import sys
 import spacy
-from contextlib import contextmanager
 from typing import Dict, List, Optional, Tuple, Union
 
 from lemminflect import getInflection, getLemma
-from spacy.symbols import AUX, NOUN, PRON, VERB, neg, nsubj, nsubjpass
+from spacy.symbols import AUX, NOUN, PRON, VERB, neg
 from spacy.tokens import Doc as SpacyDoc
 from spacy.tokens import Token as SpacyToken
 
