@@ -2,16 +2,19 @@
 
 import logging
 import importlib
+import os
 import sys
-import spacy
+from contextlib import contextmanager
 from typing import Dict, List, Optional, Tuple, Union
 
+import spacy
 from lemminflect import getInflection, getLemma
 from spacy.symbols import AUX, NOUN, PRON, VERB, neg
 from spacy.tokens import Doc as SpacyDoc
 from spacy.tokens import Token as SpacyToken
 
 from .tokens import Token
+from .version import EN_CORE_WEB_MD_VERSION, EN_CORE_WEB_TRF_VERSION
 
 
 class Negator:
@@ -875,6 +878,15 @@ class Negator:
     ) -> spacy.language.Language:
         """Initialize the spaCy model to be used by the Negator.
 
+        .. note::
+
+           Unfortunately, direct URLs are not allowed by PyPi (see
+           https://github.com/pypa/pip/issues/6301). This means that we cannot
+           specify the models as a dependency via direct URLs, as recommended by
+           spaCy (see https://spacy.io/usage/models#download-pip). We work
+           around this by downloading the models through the spaCy CLI when the
+           negator is first instanciated.
+
         Args:
             use_transformers (:obj:`Optional[bool]`, defaults to :obj:`False`):
                 Whether to use a Transformer model for POS tagging and
@@ -891,15 +903,32 @@ class Negator:
             :obj:`spacy.language.Language`: The loaded spaCy model, ready to
             use.
         """
-        model_name = "en_core_web_trf" if use_transformers else "en_core_web_md"
+        # See https://stackoverflow.com/a/25061573/14683209
+        # We don't want the messages coming from pip "polluting" stdout.
+        @contextmanager
+        def suppress_stdout():
+            with open(os.devnull, "w", encoding="utf-8") as devnull:
+                old_stdout = sys.stdout
+                sys.stdout = devnull
+                try:
+                    yield
+                finally:
+                    sys.stdout = old_stdout
+
+        model_name = (
+            f"en_core_web_trf-{EN_CORE_WEB_TRF_VERSION}" if use_transformers
+            else f"en_core_web_md-{EN_CORE_WEB_MD_VERSION}"
+        )
+        module_name = model_name.split("-")[0]
         try:  # Model installed?
-            model_module = importlib.import_module(model_name)
-            return model_module.load(**kwargs)
+            model_module = importlib.import_module(module_name)
         except ModuleNotFoundError:  # Download and install model.
-            self.logger.error("Dependencies for Transformers missing. "
-                              "Install them with:\n\n"
-                              '  pip install "negate[transformers]"\n')
-            sys.exit()
+            self.logger.info("Downloading model. This only needs to happen "
+                             "once. Please, be patient...")
+            with suppress_stdout():
+                spacy.cli.download(model_name, True, False, "-q")
+            model_module = importlib.import_module(module_name)
+        return model_module.load(**kwargs)
 
     def _handle_unsupported(self, fail: Optional[bool] = None):
         """Handle behavior upon unsupported sentences.
