@@ -49,11 +49,12 @@ negator = Negator()
 
 By default, negate uses the spaCy model
 [`en_core_web_md`](https://spacy.io/models/en#en_core_web_md) for POS tagging
-and dependency parsing. However, in cases where accuracy is preferred over
-efficiency, negate also allows to use a Transformer model, namely the spaCy
-model [`en_core_web_trf`](https://spacy.io/models/en#en_core_web_trf). To use
-this model, first install the additional dependencies and then initialize the
-Negator passing `use_transformers=True`:
+and dependency parsing. This model works well for most cases. However, if
+maximum accuracy is needed, negate also allows to use a Transformer model,
+namely the spaCy model
+[`en_core_web_trf`](https://spacy.io/models/en#en_core_web_trf). To use this
+model, first install the additional dependencies and then initialize the Negator
+passing `use_transformers=True`:
 
 ```shell
 pip install -U "negator[transformers]"
