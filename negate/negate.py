@@ -915,6 +915,15 @@ class Negator:
                 finally:
                     sys.stdout = old_stdout
 
+        # First check if optional dependencies are installed.
+        if use_transformers:
+            try:
+                importlib.import_module("spacy_transformers")
+            except ModuleNotFoundError:
+                self.logger.error("Dependencies for Transformers missing. "
+                                  "Install them with:\n\n"
+                                  ' pip install "negate[transformers]"\n')
+                sys.exit(1)
         model_name = (
             f"en_core_web_trf-{EN_CORE_WEB_TRF_VERSION}" if use_transformers
             else f"en_core_web_md-{EN_CORE_WEB_MD_VERSION}"
