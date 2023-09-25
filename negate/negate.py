@@ -126,6 +126,7 @@ class Negator:
         # complicates things.
         first_aux_or_verb = self._get_first_aux_or_verb(doc)
         while (negation and first_aux_or_verb
+                   and first_aux_or_verb.tag_ != "VBG"
                    and negation.i < first_aux_or_verb.i):
             # Search for another negation, if any.
             negation = self._get_negated_child(root, min_index=negation.i+1)
@@ -134,7 +135,7 @@ class Negator:
             remove, add = self._handle_ca_wo(root, aux_child, negation=negation)
             # General verbs -> Remove negation and conjugate verb.
             # If there is an AUX child, we need to "unnegate" the AUX instead.
-            if (not self._is_aux(root) and root.tag_ != "VBN"
+            if (not self._is_aux(root) and root.tag_ not in ("VBN", "VBG")
                     and not aux_child and not self._is_verb_to_do(root)
                     and not self._is_verb_to_be(root)):
                 remove = [root.i, negation.i]
@@ -202,14 +203,17 @@ class Negator:
                 pass
 
         # General verb non-negated.
-        negated_aux = self.negate_aux(self.conjugate_verb('do', root.tag_),
-                                      prefer_contractions)
+        if root.tag_ == "VBG":  # E.g.: "A Python module negating sentences."
+            add = f"not {root.text}"
+        else:
+            negated_aux = self.negate_aux(self.conjugate_verb('do', root.tag_),
+                                          prefer_contractions)
+            add = f"{negated_aux} {self.get_base_verb(root.text.lower())}"
         return self._compile_sentence(
             doc,
             remove_tokens=[root.i],
             add_tokens={root.i: Token(
-                text=f"{negated_aux if negated_aux is not None else ''} "
-                     f"{self.get_base_verb(root.text.lower())}",
+                text=add,
                 has_space_after=root._.has_space_after
             )}
         )

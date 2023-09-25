@@ -232,6 +232,8 @@ general_verbs_affirmative = [
     ("I used to love hiking.", "I did not use to love hiking.", False),
     ("I really liked the food.", "I really didn't like the food.", True),
     ("I really liked the food.", "I really did not like the food.", False),
+    ("A small Python module negating sentences.", "A small Python module not negating sentences.", False),
+    ("A small Python module negating sentences.", "A small Python module not negating sentences.", True)
 ]
 
 # General verbs - Negative
@@ -244,6 +246,8 @@ general_verbs_negative = [
     ("She doesn't think it's true.", "She thinks it's true.", False),
     ("She does not think it's true.", "She thinks it's true.", True),
     ("She does not think it's true.", "She thinks it's true.", False),
+    ("A small Python module not negating sentences.", "A small Python module negating sentences.", False),
+    ("A small Python module not negating sentences.", "A small Python module negating sentences.", True)
 ]
 
 # Inversions - Affirmative
