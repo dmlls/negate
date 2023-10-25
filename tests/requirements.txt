@@ -1,3 +1,3 @@
 pytest>=7.2.0,<7.5.0
-negate>=0.7.9,<1.5.0
-spacy-transformers>=1.2.5,<1.4.0
+spacy>=3.6.1,<3.8.0
+lemminflect>=0.2.3,<0.3.0
