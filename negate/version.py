@@ -1,7 +1,7 @@
 """Version specification."""
 
 # Negate version.
-__version__ = "1.1.2"
+__version__ = "1.1.3"
 
 # spaCy models version.
 EN_CORE_WEB_MD_VERSION: str = "3.7.0"
