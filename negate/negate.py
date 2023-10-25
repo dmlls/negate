@@ -126,12 +126,12 @@ class Negator:
         # complicates things.
         first_aux_or_verb = self._get_first_aux_or_verb(doc)
         while (negation and first_aux_or_verb
-                   and first_aux_or_verb.tag_ != "VBG"
+                   and first_aux_or_verb.tag_ not in("VB", "VBG")
                    and negation.i < first_aux_or_verb.i):
             # Search for another negation, if any.
             negation = self._get_negated_child(root, min_index=negation.i+1)
+        aux_child = self._get_aux_child(root)
         if negation:
-            aux_child = self._get_aux_child(root)
             remove, add = self._handle_ca_wo(root, aux_child, negation=negation)
             # General verbs -> Remove negation and conjugate verb.
             # If there is an AUX child, we need to "unnegate" the AUX instead.
@@ -188,7 +188,6 @@ class Negator:
                 or any(self._is_aux(child) for child in root.children)):
             # If the AUX has AUX children, negate them instead. E.g.: "I will
             # be there." or "They have been moody lately."
-            aux_child = self._get_aux_child(root)
             try:
                 return self._negate_aux_in_doc(
                     aux=root if not aux_child else aux_child,
@@ -203,7 +202,10 @@ class Negator:
                 pass
 
         # General verb non-negated.
-        if root.tag_ == "VBG":  # E.g.: "A Python module negating sentences."
+        if (any(child.tag_ == "TO" for child in root.children)
+                or root.tag_ == "VBG"):
+            # E.g.: "A Python module negating sentences." or "A Python module
+            # to negate sentences."
             add = f"not {root.text}"
         else:
             negated_aux = self.negate_aux(self.conjugate_verb('do', root.tag_),
