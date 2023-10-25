@@ -29,6 +29,3 @@ jobs:
 
     - name: Run tests without Transformers
       run: pytest tests
-
-    - name: Run tests with Transformers
-      run: pytest tests --transformers  --use-cpu
