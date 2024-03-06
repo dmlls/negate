@@ -44,6 +44,8 @@ classifiers = [
 dependencies = [
     "spacy>=3.6.1,<3.8.0",
     "lemminflect>=0.2.3,<0.3.0",
+    "charsplit @ git+https://github.com/dtuggener/CharSplit.git",
+    "DERBI @ git+https://github.com/MiriUll/DERBI.git@fix_install_issues"
 ]
 
 [project.optional-dependencies]
