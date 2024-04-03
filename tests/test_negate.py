@@ -19,8 +19,10 @@ def test_aux_root_affirmative(
     output_sentence: str,
     prefer_contractions: bool
 ):
-    assert negator.negate_sentence(
-        input_sentence, prefer_contractions) == output_sentence
+    assert output_sentence in negator.negate_sentence(
+        input_sentence,
+        prefer_contractions=prefer_contractions
+    )
 
 
 @pytest.mark.parametrize(
@@ -33,8 +35,10 @@ def test_aux_root_negative(
     output_sentence: str,
     prefer_contractions: bool
 ):
-    assert negator.negate_sentence(
-        input_sentence, prefer_contractions) == output_sentence
+    assert output_sentence in negator.negate_sentence(
+        input_sentence,
+        prefer_contractions=prefer_contractions
+    )
 
 
 @pytest.mark.parametrize(
@@ -47,8 +51,10 @@ def test_aux_root_children_affirmative(
     output_sentence: str,
     prefer_contractions: bool
 ):
-    assert negator.negate_sentence(
-        input_sentence, prefer_contractions) == output_sentence
+    assert output_sentence in negator.negate_sentence(
+        input_sentence,
+        prefer_contractions=prefer_contractions
+    )
 
 
 @pytest.mark.parametrize(
@@ -61,8 +67,10 @@ def test_aux_root_children_negative(
     output_sentence: str,
     prefer_contractions: bool
 ):
-    assert negator.negate_sentence(
-        input_sentence, prefer_contractions) == output_sentence
+    assert output_sentence in negator.negate_sentence(
+        input_sentence,
+        prefer_contractions=prefer_contractions
+    )
 
 
 @pytest.mark.parametrize(
@@ -75,8 +83,10 @@ def test_general_verbs_affirmative(
     output_sentence: str,
     prefer_contractions: bool
 ):
-    assert negator.negate_sentence(
-        input_sentence, prefer_contractions) == output_sentence
+    assert output_sentence in negator.negate_sentence(
+        input_sentence,
+        prefer_contractions=prefer_contractions
+    )
 
 
 @pytest.mark.parametrize(
@@ -89,8 +99,10 @@ def test_general_verbs_negative(
     output_sentence: str,
     prefer_contractions: bool
 ):
-    assert negator.negate_sentence(
-        input_sentence, prefer_contractions) == output_sentence
+    assert output_sentence in negator.negate_sentence(
+        input_sentence,
+        prefer_contractions=prefer_contractions
+    )
 
 
 @pytest.mark.parametrize(
@@ -103,8 +115,10 @@ def test_inversions_affirmative(
     output_sentence: str,
     prefer_contractions: bool
 ):
-    assert negator.negate_sentence(
-        input_sentence, prefer_contractions) == output_sentence
+    assert output_sentence in negator.negate_sentence(
+        input_sentence,
+        prefer_contractions=prefer_contractions
+    )
 
 
 @pytest.mark.parametrize(
@@ -117,8 +131,10 @@ def test_inversions_negative(
     output_sentence: str,
     prefer_contractions: bool
 ):
-    assert negator.negate_sentence(
-        input_sentence, prefer_contractions) == output_sentence
+    assert output_sentence in negator.negate_sentence(
+        input_sentence,
+        prefer_contractions=prefer_contractions
+    )
 
 
 @pytest.mark.parametrize(
@@ -131,8 +147,10 @@ def test_misc(
     output_sentence: str,
     prefer_contractions: bool
 ):
-    assert negator.negate_sentence(
-        input_sentence, prefer_contractions) == output_sentence
+    assert output_sentence in negator.negate_sentence(
+        input_sentence,
+        prefer_contractions=prefer_contractions
+    )
 
 @pytest.mark.xfail
 @pytest.mark.parametrize(
@@ -145,5 +163,7 @@ def test_failing(
     output_sentence: str,
     prefer_contractions: bool
 ):
-    assert negator.negate_sentence(
-        input_sentence, prefer_contractions) == output_sentence
+    assert output_sentence in negator.negate_sentence(
+        input_sentence,
+        prefer_contractions=prefer_contractions
+    )
