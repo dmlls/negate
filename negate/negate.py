@@ -953,8 +953,17 @@ class Negator:
         try:  # Model installed?
             model_module = importlib.import_module(module_name)
         except ModuleNotFoundError:  # Download and install model.
-            self.logger.info("Downloading model. This only needs to happen "
+            self.logger.info("Downloading spaCy model. This only needs to happen "
                              "once. Please, be patient...")
+            with suppress_stdout():
+                spacy.cli.download(model_name, True, False, "-q")
+            model_module = importlib.import_module(module_name)
+        spacy_model = model_module.load(**kwargs)
+        installed_model_version: str = spacy_model.meta["version"]
+        expected_version: str = model_name.split("-")[1]
+        if installed_model_version != expected_version:
+            self.logger.info("Updating spaCy model to version %s."
+                             " Please, be patient...", expected_version)
             with suppress_stdout():
                 spacy.cli.download(model_name, True, False, "-q")
             model_module = importlib.import_module(module_name)
