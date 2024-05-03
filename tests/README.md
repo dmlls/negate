@@ -25,7 +25,7 @@ pytest --transformers
 
 Remember that to use Transformers, the additional dependencies have to be installed first with:
 ```shell
-pip install -U "negator[transformers]"
+pip install -U "negate[transformers]"
 ```
 
 <br>
