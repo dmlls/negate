@@ -132,7 +132,7 @@ class Negator:
             negation = self._get_negated_child(root, min_index=negation.i+1)
         aux_child = self._get_aux_child(root)
         if negation:
-            remove, add = self._handle_ca_wo(root, aux_child, negation=negation)
+            remove, add = self._handle_ca_wo_sha(root, aux_child, negation=negation)
             # General verbs -> Remove negation and conjugate verb.
             # If there is an AUX child, we need to "unnegate" the AUX instead.
             if (not self._is_aux(root) and root.tag_ not in ("VBN", "VBG")
@@ -334,7 +334,7 @@ class Negator:
         negation = self._get_negated_child(aux)
         # If AUX negated -> Remove negation.
         if negation:
-            remove, add = self._handle_ca_wo(aux, negation=negation)
+            remove, add = self._handle_ca_wo_sha(aux, negation=negation)
             if not remove and not add:
                 remove = [aux.i, negation.i]
                 add = Token(
@@ -396,20 +396,21 @@ class Negator:
             add_tokens=add
         )
 
-    def _handle_ca_wo(
+    def _handle_ca_wo_sha(
         self,
         *aux_tokens: Optional[SpacyToken],
         negation: SpacyToken
     ) -> Tuple[Optional[List[int]], Optional[Dict[int, Token]]]:
-        """Handle special cases ``"won't"`` and ``"can't"``.
+        """Handle special cases ``"won't"``, ``"can't"`` and ``"shan't"``.
 
         These auxiliary verbs are split into ``"wo"`` (AUX) and ``"n't"`` (neg),
-        and ``"ca"`` (AUX) / ``"n't"`` (neg), respectively. If we simply removed
-        the negation as with other negated auxiliaries (e.g., ``"cannot"`` →
-        ``"can"`` (AUX) / ``"not"`` (neg), we remove ``"not"`` and keep
-        ``"can"``), we would end up with ``"wo"`` and ``"ca"``, which are not
-        correct words. Therefore, we need to take extra steps to replace these
-        words by ``"will"`` and ``"can"``, respectively.
+        ``"ca"`` (AUX) / ``"n't"`` (neg), and ``"sha"`` (AUX) / ``"n't"`` (neg),
+        respectively. If we simply removed the negation as with other negated
+        auxiliaries (e.g., ``"cannot"`` → ``"can"`` (AUX) / ``"not"`` (neg), we
+        remove ``"not"`` and keep ``"can"``), we would end up with ``"wo"``,
+        ``"ca"``, and ``"sha"``which are not correct words. Therefore, we need
+        to take extra steps to replace these words by ``"will"``, ``"can"``, and
+        ``"shall"``respectively.
 
         Args:
             *aux_tokens (:obj:`Optional[SpacyToken]`):
@@ -440,20 +441,25 @@ class Negator:
         for aux in aux_tokens:
             if not aux:
                 continue
-            # Case AUX "won't" -> Remove negation and replace
-            # "wo" -> "will".
+            # Case AUX "won't" -> Remove negation and replace "wo" -> "will".
             if aux.text.lower() == "wo":
                 remove.append(aux.i)
                 add.update({aux.i: Token(
                     text=" will",
                     has_space_after=negation._.has_space_after
                 )})
-            # Case AUX "can't" -> Remove negation and replace
-            # "ca" -> "can".
+            # Case AUX "can't" -> Remove negation and replace "ca" -> "can".
             elif aux.text.lower() == "ca":
                 remove.append(aux.i)
                 add.update({aux.i: Token(
                     text=" can",
+                    has_space_after=negation._.has_space_after
+                )})
+            # Case AUX "shan't" -> Remove negation and replace "sha" -> "shall".
+            elif aux.text.lower() == "sha":
+                remove.append(aux.i)
+                add.update({aux.i: Token(
+                    text=" shall",
                     has_space_after=negation._.has_space_after
                 )})
             if remove and add:
@@ -997,6 +1003,7 @@ class Negator:
                 "must": "mustn't",
                 "might": "mightn't",
                 "may": "may not",
+                "shall": "shan't",
                 "should": "shouldn't",
                 "ought": "oughtn't",
                 "'ll": " won't",
@@ -1026,6 +1033,7 @@ class Negator:
                 "must": "must not",
                 "might": "might not",
                 "may": "may not",
+                "shall": "shall not",
                 "should": "should not",
                 "ought": "ought not",
                 "'ll": " will not",
