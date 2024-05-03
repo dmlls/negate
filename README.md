@@ -57,7 +57,7 @@ model, first install the additional dependencies and then initialize the Negator
 passing `use_transformers=True`:
 
 ```shell
-pip install -U "negator[transformers]"
+pip install -U "negate[transformers]"
 ```
 
 ```Python
