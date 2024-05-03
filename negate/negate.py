@@ -137,7 +137,10 @@ class Negator:
             # If there is an AUX child, we need to "unnegate" the AUX instead.
             if (not self._is_aux(root) and root.tag_ not in ("VBN", "VBG")
                     and not aux_child and not self._is_verb_to_do(root)
-                    and not self._is_verb_to_be(root)):
+                    and not self._is_verb_to_be(root)
+                    # The latest spaCy model sometimes misclassifies "shan't".
+                    # This is a temporal workaround.
+                    and not root.text.lower() == "sha"):
                 remove = [root.i, negation.i]
                 add = {root.i: Token(
                     text=self.conjugate_verb(root.text, root.tag_),
@@ -513,7 +516,11 @@ class Negator:
         """
         if contains_inversion:
             entry_point = [tk for tk in doc
-                           if self._is_aux(tk) or self._is_verb(tk)]
+                           if self._is_aux(tk)
+                           or self._is_verb(tk)
+                           # The latest spaCy model sometimes misclassifies
+                           # "shan't". This is a temporal workaround.
+                           or tk.text.lower() == "sha"]
             if entry_point:
                 return entry_point[0]
         root = self._get_root(doc)
@@ -799,7 +806,9 @@ class Negator:
         aux = None
         pronoun = None
         for tk in doc:
-            if self._is_aux(tk):
+            # The latest spaCy model sometimes misclassifies "shan't". The
+            # additional check here is just a temporal workaround.
+            if self._is_aux(tk) or tk.text.lower() == "sha":
                 aux = tk
             # Only attend to pronouns that don't refer to a noun (i.e., those
             # which could act as subjects).
