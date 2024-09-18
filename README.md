@@ -229,6 +229,13 @@ to exist:
 
 Negate has been used in the following academic papers:
 
-- Anschütz, M., Lozano, D. M., &amp; Groh, G. (2023, July 26). *This is not correct!
-  Negation-aware Evaluation of Language Generation Systems.* arXiv.org.
-  https://arxiv.org/abs/2307.13989 
+- Anschütz, M., Miguel Lozano, D., & Groh, G. (2023). This is not correct!
+  Negation-aware Evaluation of Language Generation Systems. _Proceedings of the
+  16th International Natural Language Generation Conference_, 163–175.
+  https://doi.org/10.18653/v1/2023.inlg-main.12
+
+- Liu, X., Feng, Y., & Chang, K.-W. (2024). Casa: Causality-driven Argument
+  Sufficiency Assessment. _Proceedings of the 2024 Conference of the North American
+  Chapter of the Association for Computational Linguistics: Human Language
+  Technologies (Volume 1: Long Papers)_, 5282–5302.
+  https://doi.org/10.18653/v1/2024.naacl-long.296
