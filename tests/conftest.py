@@ -1,8 +1,8 @@
 """Set up tests."""
 
-from negate import Negator
 from contextlib import suppress
 
+from negate import Negator
 
 # Reuse negator model for all tests.
 negator_model: Negator = None

@@ -1,12 +1,13 @@
 """Tests for sentence negation."""
 
 import pytest
+
 from negate import Negator
-from .data import (aux_root_affirmative, aux_root_negative,
-                   aux_root_children_affirmative, aux_root_children_negative,
+
+from .data import (aux_root_affirmative, aux_root_children_affirmative,
+                   aux_root_children_negative, aux_root_negative, failing,
                    general_verbs_affirmative, general_verbs_negative,
-                   inversions_affirmative, inversions_negative,
-                   misc, failing)
+                   inversions_affirmative, inversions_negative, misc)
 
 
 @pytest.mark.parametrize(
