@@ -166,7 +166,11 @@ aux_root_children_affirmative = [
     ("I should have done it.", "I should not have done it.", False),
     ("I should've done it.", "I shouldn't have done it.", True),
     ("I should've done it.", "I should not have done it.", False),
-    ("I expect everything to be ready.", "I don't expect everything to be ready.", True),
+    (
+        "I expect everything to be ready.",
+        "I don't expect everything to be ready.",
+        True,
+    ),
 ]
 
 # AUX in ROOT children - Negative
@@ -231,7 +235,11 @@ aux_root_children_negative = [
     ("I shouldn't have done it.", "I should have done it.", False),
     ("I should not have done it.", "I should have done it.", True),
     ("I should not have done it.", "I should have done it.", False),
-    ("I don't expect everything to be ready.", "I expect everything to be ready.", True),
+    (
+        "I don't expect everything to be ready.",
+        "I expect everything to be ready.",
+        True,
+    ),
 ]
 
 # General verbs - Affirmative
@@ -244,10 +252,26 @@ general_verbs_affirmative = [
     ("I used to love hiking.", "I did not use to love hiking.", False),
     ("I really liked the food.", "I really didn't like the food.", True),
     ("I really liked the food.", "I really did not like the food.", False),
-    ("A small Python module negating sentences.", "A small Python module not negating sentences.", False),
-    ("A small Python module negating sentences.", "A small Python module not negating sentences.", True),
-    ("A small Python module to negate sentences.", "A small Python module to not negate sentences.", False),
-    ("A small Python module to negate sentences.", "A small Python module to not negate sentences.", True)
+    (
+        "A small Python module negating sentences.",
+        "A small Python module not negating sentences.",
+        False,
+    ),
+    (
+        "A small Python module negating sentences.",
+        "A small Python module not negating sentences.",
+        True,
+    ),
+    (
+        "A small Python module to negate sentences.",
+        "A small Python module to not negate sentences.",
+        False,
+    ),
+    (
+        "A small Python module to negate sentences.",
+        "A small Python module to not negate sentences.",
+        True,
+    ),
 ]
 
 # General verbs - Negative
@@ -260,10 +284,26 @@ general_verbs_negative = [
     ("She doesn't think it's true.", "She thinks it's true.", False),
     ("She does not think it's true.", "She thinks it's true.", True),
     ("She does not think it's true.", "She thinks it's true.", False),
-    ("A small Python module not negating sentences.", "A small Python module negating sentences.", False),
-    ("A small Python module not negating sentences.", "A small Python module negating sentences.", True),
-    ("A small Python module to not negate sentences.", "A small Python module to negate sentences.", False),
-    ("A small Python module to not negate sentences.", "A small Python module to negate sentences.", True)
+    (
+        "A small Python module not negating sentences.",
+        "A small Python module negating sentences.",
+        False,
+    ),
+    (
+        "A small Python module not negating sentences.",
+        "A small Python module negating sentences.",
+        True,
+    ),
+    (
+        "A small Python module to not negate sentences.",
+        "A small Python module to negate sentences.",
+        False,
+    ),
+    (
+        "A small Python module to not negate sentences.",
+        "A small Python module to negate sentences.",
+        True,
+    ),
 ]
 
 # Inversions - Affirmative
@@ -298,10 +338,26 @@ inversions_affirmative = [
     ("Shall it work?", "Shall it not work?", False),
     ("Could it work?", "Couldn't it work?", True),
     ("Could it work?", "Could it not work?", False),
-    ("Are there many ways it can be done?", "Aren't there many ways it can be done?", True),
-    ("Are there many ways it can be done?", "Are there not many ways it can be done?", False),
-    ("Little did I know their opinion was so biased.", "Little didn't I know their opinion was so biased.", True),
-    ("Little did I know their opinion was so biased.", "Little did I not know their opinion was so biased.", False),
+    (
+        "Are there many ways it can be done?",
+        "Aren't there many ways it can be done?",
+        True,
+    ),
+    (
+        "Are there many ways it can be done?",
+        "Are there not many ways it can be done?",
+        False,
+    ),
+    (
+        "Little did I know their opinion was so biased.",
+        "Little didn't I know their opinion was so biased.",
+        True,
+    ),
+    (
+        "Little did I know their opinion was so biased.",
+        "Little did I not know their opinion was so biased.",
+        False,
+    ),
 ]
 
 # Inversions - Negative
@@ -332,23 +388,55 @@ inversions_negative = [
     ("Shall it not work?", "Shall it work?", False),
     ("Could it not work?", "Could it work?", False),
     ("Couldn't it work?", "Could it work?", True),
-    ("Aren't there many ways it can be done?", "Are there many ways it can be done?", True),
-    ("Are there not many ways it can be done?", "Are there many ways it can be done?", False),
-    ("Little did I not know their opinion was so biased.", "Little did I know their opinion was so biased.", True),
-    ("Little didn't I know their opinion was so biased.", "Little did I know their opinion was so biased.", False),
+    (
+        "Aren't there many ways it can be done?",
+        "Are there many ways it can be done?",
+        True,
+    ),
+    (
+        "Are there not many ways it can be done?",
+        "Are there many ways it can be done?",
+        False,
+    ),
+    (
+        "Little did I not know their opinion was so biased.",
+        "Little did I know their opinion was so biased.",
+        True,
+    ),
+    (
+        "Little didn't I know their opinion was so biased.",
+        "Little did I know their opinion was so biased.",
+        False,
+    ),
 ]
 
 # Miscellaneous
 misc = [
-    ("A small Python module that doesn't negate sentences.", "A small Python module that negates sentences.", True),
+    (
+        "A small Python module that doesn't negate sentences.",
+        "A small Python module that negates sentences.",
+        True,
+    ),
     ("You should always be careful.", "You shouldn't always be careful.", True),
     ("You must be careful.", "You must not be careful.", False),
     ("I would have done it differently.", "I wouldn't have done it differently.", True),
-    ("They are thinking too much and things might not go right.", "They are thinking too much and things might go right.", True),
-    ("They aren't going too fast and they might not have time.", "They are going too fast and they might not have time.", True),
+    (
+        "They are thinking too much and things might not go right.",
+        "They are thinking too much and things might go right.",
+        True,
+    ),
+    (
+        "They aren't going too fast and they might not have time.",
+        "They are going too fast and they might not have time.",
+        True,
+    ),
     ("I am tired.", "I am not tired.", False),
     ("This was incorrectly assumed.", "This was not incorrectly assumed.", False),
-    ("They were brought up in a small town.", "They weren't brought up in a small town.", True),
+    (
+        "They were brought up in a small town.",
+        "They weren't brought up in a small town.",
+        True,
+    ),
     ("I do like it.", "I don't like it.", True),
     ("She does like it.", "She doesn't like it.", True),
     ("He does like it.", "He does not like it.", False),
@@ -356,7 +444,11 @@ misc = [
     ("He doesn't like it.", "He likes it.", True),
     ("I know everything.", "I don't know everything.", True),
     ("I don't know everything.", "I know everything.", True),
-    ("The latter's chariot's wheels sank into the ground.", "The latter's chariot's wheels didn't sink into the ground.", True),
+    (
+        "The latter's chariot's wheels sank into the ground.",
+        "The latter's chariot's wheels didn't sink into the ground.",
+        True,
+    ),
     ("He prepared a delicious meal.", "He didn't prepare a delicious meal.", True),
     ("I used to know everything.", "I did not use to know everything.", False),
     ("I'm so damn hungry.", "I'm not so damn hungry.", True),
@@ -365,13 +457,37 @@ misc = [
     ("He's so afraid.", "He isn't so afraid.", True),
     ("He's so afraid.", "He is not so afraid.", False),
     ("They are kinda crazy.", "They are not kinda crazy.", False),
-    ("There are many ways it can be done.", "There are not many ways it can be done.", False),
-    ("There are many ways it can be done.", "There aren't many ways it can be done.", True),
-    ("There exist many ways it can be done.", "There don't exist many ways it can be done.", True),
-    ("For more info, visit our webpage.", "For more info, don't visit our webpage.", True),
+    (
+        "There are many ways it can be done.",
+        "There are not many ways it can be done.",
+        False,
+    ),
+    (
+        "There are many ways it can be done.",
+        "There aren't many ways it can be done.",
+        True,
+    ),
+    (
+        "There exist many ways it can be done.",
+        "There don't exist many ways it can be done.",
+        True,
+    ),
+    (
+        "For more info, visit our webpage.",
+        "For more info, don't visit our webpage.",
+        True,
+    ),
     ("To dream, one doesn't need to sleep.", "To dream, one needs to sleep.", True),
-    ("Make an iterator that returns object over and over again.", "Do not make an iterator that returns object over and over again.", False),
-    ("Make an iterator that returns object over and over again.", "Don't make an iterator that returns object over and over again.", True),
+    (
+        "Make an iterator that returns object over and over again.",
+        "Do not make an iterator that returns object over and over again.",
+        False,
+    ),
+    (
+        "Make an iterator that returns object over and over again.",
+        "Don't make an iterator that returns object over and over again.",
+        True,
+    ),
     ("Do that again.", "Do not do that again.", False),
     ("Do that again.", "Don't do that again.", True),
     ("They will do it asap.", "They won't do it asap.", True),
@@ -383,7 +499,11 @@ misc = [
     ("Not that he thinks a lot.", "Not that he does not think a lot.", False),
     ("Not that he doesn't think a lot.", "Not that he thinks a lot.", False),
     ("Not that he does not think a lot.", "Not that he thinks a lot.", False),
-    ("Not for the first time, she felt utterly betrayed.", "Not for the first time, she didn't feel utterly betrayed.", True),
+    (
+        "Not for the first time, she felt utterly betrayed.",
+        "Not for the first time, she didn't feel utterly betrayed.",
+        True,
+    ),
     ("I've studied hard.", "I haven't studied hard.", True),
     ("I've studied hard.", "I have not studied hard.", False),
     ("She's been to Paris.", "She has not been to Paris.", False),
@@ -393,7 +513,11 @@ misc = [
     ("He's Paul.", "He is not Paul.", False),
     ("I will never go there.", "I will go there.", False),
     ("I always go there.", "I always don't go there.", True),  # not very natural
-    ("In general, companies can say great things about their product.", "In general, companies cannot say great things about their product.", False),
+    (
+        "In general, companies can say great things about their product.",
+        "In general, companies cannot say great things about their product.",
+        False,
+    ),
 ]
 
 # Sentences that are currently failing.
@@ -404,11 +528,23 @@ failing = [
     ("She does.", "She doesn't.", True),  # "do" classified as VERB instead of AUX.
     ("She does.", "She does not.", False),  # "do" classified as VERB instead of AUX.
     # Connectors.
-    ("It also prohibits or restricts the use of certain mechanisms.", "It also doesn't prohibit or restrict the use of certain mechanisms.", True),
+    (
+        "It also prohibits or restricts the use of certain mechanisms.",
+        "It also doesn't prohibit or restrict the use of certain mechanisms.",
+        True,
+    ),
     # Boolean logic, e.g.: "prohibits AND restricts" -> "doesn't prohibit OR restrict"
-    ("It also prohibits and restricts the use of certain mechanisms.", "It also doesn't prohibit or restrict the use of certain mechanisms.", True),
+    (
+        "It also prohibits and restricts the use of certain mechanisms.",
+        "It also doesn't prohibit or restrict the use of certain mechanisms.",
+        True,
+    ),
     # Non-verbal negations.
-    ("A piece with no moving parts.", "A piece with moving parts.", False),  # No verb to negate.
+    (
+        "A piece with no moving parts.",
+        "A piece with moving parts.",
+        False,
+    ),  # No verb to negate.
     # Special case of negated ought not yet implemented.
     ("You ought not to do it.", "You ought to do it.", False),
     ("You ought to do it.", "You oughtn't do it.", True),
