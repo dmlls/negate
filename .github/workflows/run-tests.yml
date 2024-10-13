@@ -7,7 +7,7 @@ on:
     branches: [ main ]
 
 env:
-  PYTHON_VERSION: 3.7  # test on the minimum version supported
+  PYTHON_VERSION: 3.9
 
 jobs:
   run-tests:
@@ -16,7 +16,7 @@ jobs:
     steps:
     
     - name: Checkout
-      uses: actions/checkout@v3
+      uses: actions/checkout@v4
 
     - name: Set-up Python
       uses: actions/setup-python@v4
