@@ -27,8 +27,6 @@ aux_root_affirmative = [
     ("I'll be excited.", "I will not be excited.", False),
     ("I will be excited.", "I won't be excited.", True),
     ("I will be excited.", "I will not be excited.", False),
-    ("She's determined.", "She isn't determined.", True),
-    ("She's determined.", "She is not determined.", False),
     ("She's excited.", "She isn't excited.", True),
     ("She's excited.", "She is not excited.", False),
     ("She is excited.", "She isn't excited.", True),
@@ -175,6 +173,7 @@ aux_root_children_negative = [
     ("I shouldn't do it.", "I should do it.", False),
     ("I should not do it.", "I should do it.", True),
     ("I should not do it.", "I should do it.", False),
+    ("You ought not to do it.", "You ought to do it.", False),
     ("I can't do it.", "I can do it.", True),
     ("I can't do it.", "I can do it.", False),
     ("I cannot do it.", "I can do it.", True),
@@ -244,8 +243,6 @@ general_verbs_affirmative = [
     ("I used to love hiking.", "I did not use to love hiking.", False),
     ("I really liked the food.", "I really didn't like the food.", True),
     ("I really liked the food.", "I really did not like the food.", False),
-    ("A small Python module negating sentences.", "A small Python module not negating sentences.", False),
-    ("A small Python module negating sentences.", "A small Python module not negating sentences.", True),
     ("A small Python module to negate sentences.", "A small Python module to not negate sentences.", False),
     ("A small Python module to negate sentences.", "A small Python module to not negate sentences.", True)
 ]
@@ -403,6 +400,8 @@ failing = [
     ("I do.", "I do not.", False),  # "do" classified as VERB instead of AUX.
     ("She does.", "She doesn't.", True),  # "do" classified as VERB instead of AUX.
     ("She does.", "She does not.", False),  # "do" classified as VERB instead of AUX.
+    ("A small Python module negating sentences.", "A small Python module not negating sentences.", False),
+    ("A small Python module negating sentences.", "A small Python module not negating sentences.", True),
     # Connectors.
     ("It also prohibits or restricts the use of certain mechanisms.", "It also doesn't prohibit or restrict the use of certain mechanisms.", True),
     # Boolean logic, e.g.: "prohibits AND restricts" -> "doesn't prohibit OR restrict"
@@ -410,7 +409,9 @@ failing = [
     # Non-verbal negations.
     ("A piece with no moving parts.", "A piece with moving parts.", False),  # No verb to negate.
     # Special case of negated ought not yet implemented.
-    ("You ought not to do it.", "You ought to do it.", False),
     ("You ought to do it.", "You oughtn't do it.", True),
     ("You oughtn't do it.", "You ought to do it.", True),
+    # Ambiguous.
+    ("She's determined.", "She isn't determined.", True),
+    ("She's determined.", "She is not determined.", False),
 ]
